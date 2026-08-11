@@ -70,9 +70,33 @@ async function createAuthSession(
   return result;
 }
 
+async function findSessionByTokenHash(
+  tokenHash: string,
+): Promise<AuthSession | undefined> {
+  const query = await db.query(
+    `
+    SELECT 
+      id, 
+      user_id AS "userId",
+      token_hash AS "tokenHash",
+      created_at AS "createdAt",
+      expires_at AS "expiresAt"
+    FROM user_sessions
+    WHERE 
+      token_hash = $1
+    `,
+    [tokenHash],
+  );
+
+  const result = query.rows[0];
+
+  return result;
+}
+
 export default {
   signUp,
   userExists,
   findUser,
   createAuthSession,
+  findSessionByTokenHash,
 };

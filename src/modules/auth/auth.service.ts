@@ -54,7 +54,7 @@ async function login(email: string, password: string) {
     .update(sessionToken)
     .digest("hex");
 
-  const newSession = await authRepository.createAuthSession(tokenHash, user.id);
+  await authRepository.createAuthSession(tokenHash, user.id);
 
   return { sessionToken };
 }
