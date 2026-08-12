@@ -28,12 +28,12 @@ async function createRoom(
   return result;
 }
 
-async function doesRoomExists(roomId: string): Promise<boolean> {
+async function doesRoomExists(roomId: string): Promise<Room | undefined> {
   const query = await db.query("SELECT id FROM rooms WHERE id = $1", [roomId]);
 
-  const found: boolean = query.rowCount === null ? false : query.rowCount > 0;
+  const result = query.rows[0];
 
-  return found;
+  return result;
 }
 
 async function isOwnerOfTheRoom(

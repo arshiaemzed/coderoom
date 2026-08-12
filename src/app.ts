@@ -3,6 +3,7 @@ import "./infrastructure/postgres/pool.js";
 import globalErrorHandler from "./shared/middleware/globalErrorHandler.js";
 import authRoute from "./modules/auth/auth.routes.js";
 import roomsRouter from "./modules/rooms/rooms.routes.js";
+import server from "./infrastructure/websocket/server.js";
 
 const app = express();
 

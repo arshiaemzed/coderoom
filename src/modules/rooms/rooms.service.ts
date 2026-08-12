@@ -1,4 +1,4 @@
-import type { Room } from "./rooms.type.js";
+import type { DatabaseRoom } from "./rooms.type.js";
 import roomsRepository from "./rooms.repository.js";
 import AppError from "../../shared/errors/error.js";
 import errorCodes from "../../shared/errors/errorCodes.js";
@@ -6,13 +6,16 @@ import errorCodes from "../../shared/errors/errorCodes.js";
 async function createRoom(
   userId: string,
   name: string | undefined,
-): Promise<Room> {
+): Promise<DatabaseRoom> {
   const newRoom = await roomsRepository.createRoom(userId, name);
 
   return newRoom;
 }
 
-async function deleteRoom(roomId: string, userId: string): Promise<Room> {
+async function deleteRoom(
+  roomId: string,
+  userId: string,
+): Promise<DatabaseRoom> {
   const findRoom = await roomsRepository.doesRoomExists(roomId);
 
   if (!findRoom) {
