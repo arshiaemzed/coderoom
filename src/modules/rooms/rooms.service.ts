@@ -45,7 +45,14 @@ async function deleteRoom(
   return deletedRoom!;
 }
 
+async function getAllRooms() {
+  const rooms = await roomsRepository.getAllRooms();
+
+  return rooms;
+}
+
 export default {
   createRoom,
   deleteRoom,
+  getAllRooms,
 };

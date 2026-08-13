@@ -1,11 +1,11 @@
-import type { Room } from "./rooms.type.js";
+import type { DatabaseRoom } from "./rooms.type.js";
 import db from "../../infrastructure/postgres/pool.js";
 
 async function createRoom(
   userId: string,
   name: string | undefined,
-): Promise<Room> {
-  const query = await db.query<Room>(
+): Promise<DatabaseRoom> {
+  const query = await db.query<DatabaseRoom>(
     `
         INSERT INTO rooms
             (user_id, name)    
@@ -28,7 +28,9 @@ async function createRoom(
   return result;
 }
 
-async function doesRoomExists(roomId: string): Promise<Room | undefined> {
+async function doesRoomExists(
+  roomId: string,
+): Promise<DatabaseRoom | undefined> {
   const query = await db.query("SELECT id FROM rooms WHERE id = $1", [roomId]);
 
   const result = query.rows[0];
@@ -53,7 +55,7 @@ async function isOwnerOfTheRoom(
 async function deleteRoom(
   roomId: string,
   userId: string,
-): Promise<Room | undefined> {
+): Promise<DatabaseRoom | undefined> {
   const query = await db.query(
     `
     DELETE FROM rooms
@@ -75,9 +77,24 @@ async function deleteRoom(
   return result;
 }
 
+async function getAllRooms() {
+  const query = await db.query(
+    `
+    SELECT 
+      id, 
+      user_id AS "userId",
+      name,
+      created_at AS "createdAt"
+    FROM rooms
+    `,
+  );
+  return query.rows;
+}
+
 export default {
   createRoom,
   deleteRoom,
   doesRoomExists,
   isOwnerOfTheRoom,
+  getAllRooms,
 };

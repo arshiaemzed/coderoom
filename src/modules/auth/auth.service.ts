@@ -10,8 +10,8 @@ async function signUp(email: string, password: string) {
   if (userExists) {
     throw new AppError(
       401,
-      errorCodes.USER_ALREADY_EXISTS,
       "User already exists with that email.",
+      errorCodes.USER_ALREADY_EXISTS,
     );
   }
 
@@ -32,8 +32,8 @@ async function login(email: string, password: string) {
   if (!user) {
     throw new AppError(
       401,
-      errorCodes.INVALID_CREDENTIALS,
       "Invalid credentials.",
+      errorCodes.INVALID_CREDENTIALS,
     );
   }
 
@@ -42,8 +42,8 @@ async function login(email: string, password: string) {
   if (!passwordMatch) {
     throw new AppError(
       401,
-      errorCodes.INVALID_CREDENTIALS,
       "Invalid credentials.",
+      errorCodes.INVALID_CREDENTIALS,
     );
   }
 
@@ -56,7 +56,7 @@ async function login(email: string, password: string) {
 
   await authRepository.createAuthSession(tokenHash, user.id);
 
-  return { sessionToken };
+  return { id: user.id, token: sessionToken };
 }
 
 export default {

@@ -26,8 +26,13 @@ server.on("connection", (socket: WebSocket) => {
     try {
       const event = JSON.parse(data.toString());
 
+      // Authentication Events
+      if (event.type === "login" && event.token) {
+        await auth(socket, event.token);
+      }
+
       // Normal events
-      if (event.type !== "login" && !event.token) {
+      if (clients.get(socket) && event.type !== "login" && !event.token) {
         const userEvent: Event = event;
 
         switch (userEvent.type) {
@@ -38,13 +43,9 @@ server.on("connection", (socket: WebSocket) => {
             await checkRoomAndLeave(socket, userEvent.room);
             break;
           case "send_message":
+            sendMessage(socket, userEvent.room, userEvent.message || "");
             break;
         }
-      }
-
-      // Authentication Events
-      if (event.type === "login" && event.token) {
-        await auth(socket, event.token);
       }
     } catch (error) {
       throw error;
@@ -57,9 +58,35 @@ server.on("connection", (socket: WebSocket) => {
     console.log("Client disconnected");
     clients.delete(socket);
     room?.members.delete(socket);
-    console.log(clients);
   });
 });
+
+function sendMessage(client: WebSocket, roomId: string, message: string) {
+  if (!clients.get(client)) {
+    client.send(
+      JSON.stringify({ type: "message", message: "You are not authenticated" }),
+    );
+    // client.close();
+    return;
+  }
+
+  if (!isMemberOfRoom(client, roomId)) {
+    client.send(
+      JSON.stringify({
+        type: "message",
+        message: "You are not authorized to send message in this room.",
+      }),
+    );
+    return;
+  }
+
+  const room = rooms.find((e) => e.id === roomId);
+  const user = room?.members.get(client);
+
+  room!.members.forEach((e, k) => {
+    k.send(JSON.stringify({ type: "message", message: message }));
+  });
+}
 
 async function auth(client: WebSocket, token: string) {
   if (clients.get(client)) {
@@ -83,11 +110,8 @@ async function auth(client: WebSocket, token: string) {
     return;
   }
 
-  client.send(
-    JSON.stringify({ sessionToken: tokenHash, userId: valid.userId }),
-  );
   clients.set(client, { userId: valid.userId });
-  console.log(valid.userId);
+  client.send(JSON.stringify({ type: "login_success", userId: valid.userId }));
 }
 
 function isMemberOfRoom(client: WebSocket, roomId: string): boolean {
@@ -103,7 +127,7 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
     client.send(
       JSON.stringify({ type: "message", message: "You are not authenticated" }),
     );
-    client.close();
+    // client.close();
     return;
   }
 
@@ -136,7 +160,6 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
     // at this point user.userId is not null because we checked user authentication at the beginning
     newRoom.members.set(client, { userId: user!.userId });
     client.send("You joined the room.");
-    console.log(rooms);
     return;
   }
 
@@ -152,7 +175,7 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
 async function checkRoomAndLeave(client: WebSocket, roomId: string) {
   if (!clients.get(client)) {
     client.send("You are not authenticated");
-    client.close();
+    // client.close();
     return;
   }
 
@@ -178,7 +201,6 @@ async function checkRoomAndLeave(client: WebSocket, roomId: string) {
 
   localRoom.members.delete(client);
   client.send("You leaved the room.");
-  console.log(rooms);
 }
 
 export default server;

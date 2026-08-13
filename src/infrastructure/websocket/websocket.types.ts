@@ -6,6 +6,7 @@ type authEventType = "login";
 interface Event {
   type: eventType;
   room: string;
+  message?: string;
 }
 
 interface AuthEvent {
