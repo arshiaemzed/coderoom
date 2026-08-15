@@ -118,7 +118,7 @@ async function auth(client: WebSocket, token: string) {
     return;
   }
 
-  clients.set(client, { userId: valid.userId });
+  clients.set(client, { userId: valid.userId, displayName: valid.displayName });
   client.send(JSON.stringify({ type: "login_success", userId: valid.userId }));
 }
 
@@ -167,21 +167,29 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   if (!localRoom) {
     const newRoom = {
       id: databaseRoom.id,
+      name: databaseRoom.name,
       members: new Map<WebSocket, Client>(),
       owner: databaseRoom.userId,
     };
 
     rooms.push(newRoom);
 
-    newRoom.members.set(client, { userId: user!.userId });
+    newRoom.members.set(client, {
+      userId: user!.userId,
+      displayName: user?.displayName!,
+    });
 
     client.send(
       JSON.stringify({
         code: "you_joined_room",
         message: "You joined the room",
+        members: Array.from(newRoom.members.values()),
         roomId: databaseRoom.id,
+        roomName: newRoom.name,
       }),
     );
+
+    updateRoomData(newRoom.id);
 
     return;
   }
@@ -198,16 +206,21 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   }
 
   // at this point user.userId is not null because we checked user authentication at the beginning
-  localRoom.members.set(client, { userId: user?.userId! });
+  localRoom.members.set(client, {
+    userId: user?.userId!,
+    displayName: user?.displayName!,
+  });
 
   client.send(
     JSON.stringify({
       code: "you_joined_room",
       message: "You joined the room",
+      members: Array.from(localRoom.members.values()),
       roomId: localRoom.id,
-      members: localRoom.members,
+      roomName: localRoom.name,
     }),
   );
+  updateRoomData(localRoom.id);
 }
 
 async function checkRoomAndLeave(client: WebSocket, roomId: string) {
@@ -257,7 +270,6 @@ async function checkRoomAndLeave(client: WebSocket, roomId: string) {
       JSON.stringify({
         code: "not_joined_in_the_room",
         roomId: localRoom.id,
-
         message: "You are not joined in the room.",
       }),
     );
@@ -270,10 +282,28 @@ async function checkRoomAndLeave(client: WebSocket, roomId: string) {
     JSON.stringify({
       code: "leaved_room",
       roomId: localRoom.id,
-      members: localRoom.members,
+      roomName: localRoom.name,
+      members: Array.from(localRoom.members.values()),
       message: "You leaved the room.",
     }),
   );
+  updateRoomData(localRoom.id);
+}
+
+function updateRoomData(roomId: string) {
+  const room = rooms.find((e) => e.id === roomId);
+
+  room!.members.forEach((e, k) => {
+    k.send(
+      JSON.stringify({
+        code: "room_updated",
+        roomId: room?.id,
+        name: room?.name,
+        owner: room?.owner,
+        members: Array.from(room!.members.values()),
+      }),
+    );
+  });
 }
 
 export default server;

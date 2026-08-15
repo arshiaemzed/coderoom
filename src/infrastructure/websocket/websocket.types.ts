@@ -16,10 +16,12 @@ interface AuthEvent {
 
 interface Client {
   userId: string;
+  displayName: string;
 }
 
 interface Room {
   id: string;
+  name: string;
   owner: string;
   members: Map<WebSocket, Client>;
 }

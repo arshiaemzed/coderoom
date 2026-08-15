@@ -32,7 +32,7 @@ async function doesRoomExists(
   roomId: string,
 ): Promise<DatabaseRoom | undefined> {
   const query = await db.query(
-    `SELECT id, user_id AS "userId" FROM rooms WHERE id = $1`,
+    `SELECT id, user_id AS "userId", name FROM rooms WHERE id = $1`,
     [roomId],
   );
 

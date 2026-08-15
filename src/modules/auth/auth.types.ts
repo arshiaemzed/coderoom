@@ -11,6 +11,7 @@ interface UserPasswordInfo {
 interface AuthSession {
   id: string;
   userId: string;
+  displayName: string;
   tokenHash: string;
   createdAt: Date;
   expiresAt: Date;

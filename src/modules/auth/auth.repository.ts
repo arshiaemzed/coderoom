@@ -69,17 +69,28 @@ async function createAuthSession(
 ): Promise<AuthSession> {
   const query = await db.query<AuthSession>(
     `
-    INSERT INTO user_sessions 
-      (token_hash, user_id, expires_at) 
-    VALUES
-      ($1, $2, NOW() + INTERVAL '7d')
-    RETURNING 
-      id,
-      user_id AS "userId",
-      token_hash AS "tokenHash",
-      created_at AS "createdAt",
-      expires_at AS "expiresAt"
-    `,
+    WITH created_session AS (
+      INSERT INTO user_sessions 
+        (token_hash, user_id, expires_at) 
+      VALUES
+        ($1, $2, NOW() + INTERVAL '7d')
+      RETURNING 
+        id,
+        user_id AS "userId",
+        token_hash AS "tokenHash",
+        created_at AS "createdAt",
+        expires_at AS "expiresAt"
+    )
+    SELECT 
+      created_session.id, 
+      created_session."userId",
+      created_session."tokenHash",
+      created_session."createdAt",
+      profiles.display_name AS "displayName"
+    FROM created_session
+    JOIN profiles 
+      ON profiles.user_id = created_session."userId"
+  `,
     [tokenHash, userId],
   );
 
@@ -98,14 +109,15 @@ async function findSessionByTokenHash(
   const query = await db.query(
     `
     SELECT 
-      id, 
-      user_id AS "userId",
-      token_hash AS "tokenHash",
-      created_at AS "createdAt",
-      expires_at AS "expiresAt"
+      user_sessions.id, 
+      user_sessions.user_id AS "userId",
+      user_sessions.token_hash AS "tokenHash",
+      user_sessions.created_at AS "createdAt",
+      profiles.display_name AS "displayName",
+      user_sessions.expires_at AS "expiresAt"
     FROM user_sessions
-    WHERE 
-      token_hash = $1
+    JOIN profiles ON profiles.user_id = user_sessions.user_id
+    WHERE user_sessions.token_hash = $1
     `,
     [tokenHash],
   );
