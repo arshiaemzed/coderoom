@@ -43,7 +43,7 @@ server.on("connection", (socket: WebSocket) => {
             await checkRoomAndLeave(socket, userEvent.room);
             break;
           case "send_message":
-            sendMessage(socket, userEvent.room, userEvent.message || "");
+            sendMessage(socket, userEvent.room, userEvent.message ?? "");
             break;
         }
       }
@@ -70,6 +70,8 @@ function sendMessage(client: WebSocket, roomId: string, message: string) {
     return;
   }
 
+  // TODO: add a check for room
+
   if (!isMemberOfRoom(client, roomId)) {
     client.send(
       JSON.stringify({
@@ -81,10 +83,16 @@ function sendMessage(client: WebSocket, roomId: string, message: string) {
   }
 
   const room = rooms.find((e) => e.id === roomId);
-  const user = room?.members.get(client);
 
   room!.members.forEach((e, k) => {
-    k.send(JSON.stringify({ type: "message", message: message }));
+    k.send(
+      JSON.stringify({
+        type: "message",
+        roomId: roomId,
+        room: room,
+        message: message,
+      }),
+    );
   });
 }
 
@@ -125,82 +133,147 @@ function isMemberOfRoom(client: WebSocket, roomId: string): boolean {
 async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   if (!clients.get(client)) {
     client.send(
-      JSON.stringify({ type: "message", message: "You are not authenticated" }),
+      JSON.stringify({
+        code: "not_authenticated",
+        roomId: roomId,
+        message: "You are not authenticated",
+      }),
     );
     // client.close();
     return;
   }
 
-  const room: DatabaseRoom | undefined =
+  const databaseRoom: DatabaseRoom | undefined =
     await roomsRepository.doesRoomExists(roomId);
 
-  if (!room) {
+  if (!databaseRoom) {
+    client.send(
+      JSON.stringify({
+        code: "room_does_not_exists",
+        roomId: roomId,
+        message: "Room does not exists.",
+      }),
+    );
     client.send("Room does not exists.");
     return;
   }
 
-  const localRoom: Room | undefined = rooms.find((e) => e.id === room.id);
+  const localRoom: Room | undefined = rooms.find(
+    (e) => e.id === databaseRoom.id,
+  );
 
   const user = clients.get(client);
 
   if (!localRoom) {
     const newRoom = {
-      id: room.id,
+      id: databaseRoom.id,
       members: new Map<WebSocket, Client>(),
-      owner: room.userId,
+      owner: databaseRoom.userId,
     };
 
     rooms.push(newRoom);
 
-    if (isMemberOfRoom(client, roomId)) {
-      client.send("You are already joined in this room");
-      return;
-    }
-
-    // at this point user.userId is not null because we checked user authentication at the beginning
     newRoom.members.set(client, { userId: user!.userId });
-    client.send("You joined the room.");
+
+    client.send(
+      JSON.stringify({
+        code: "you_joined_room",
+        message: "You joined the room",
+        roomId: databaseRoom.id,
+      }),
+    );
+
     return;
   }
 
-  if (isMemberOfRoom(client, roomId)) {
-    client.send("You are already joined in this room");
+  if (isMemberOfRoom(client, localRoom.id)) {
+    client.send(
+      JSON.stringify({
+        code: "already_joined_in_room",
+        roomId: roomId,
+        message: "You are already joined in this room.",
+      }),
+    );
     return;
   }
 
   // at this point user.userId is not null because we checked user authentication at the beginning
   localRoom.members.set(client, { userId: user?.userId! });
+
+  client.send(
+    JSON.stringify({
+      code: "you_joined_room",
+      message: "You joined the room",
+      roomId: localRoom.id,
+      members: localRoom.members,
+    }),
+  );
 }
 
 async function checkRoomAndLeave(client: WebSocket, roomId: string) {
   if (!clients.get(client)) {
-    client.send("You are not authenticated");
+    client.send(
+      JSON.stringify({
+        code: "not_authenticated",
+        roomId: roomId,
+        message: "You are not authenticated",
+      }),
+    );
     // client.close();
     return;
   }
 
-  const room: DatabaseRoom | undefined =
+  const databaseRoom: DatabaseRoom | undefined =
     await roomsRepository.doesRoomExists(roomId);
 
-  if (!room) {
-    client.send("Room does not exists.");
+  if (!databaseRoom) {
+    client.send(
+      JSON.stringify({
+        code: "room_does_not_exists",
+        roomId: roomId,
+        message: "Room does not exists",
+      }),
+    );
     return;
   }
 
-  const localRoom: Room | undefined = rooms.find((e) => e.id === room.id);
+  const localRoom: Room | undefined = rooms.find(
+    (e) => e.id === databaseRoom.id,
+  );
 
   if (!localRoom) {
-    client.send("The room that you are trying to leave is not active.");
+    client.send(
+      JSON.stringify({
+        code: "room_not_active",
+        roomId: roomId,
+        message: "The room that you are trying to leave is not active.",
+      }),
+    );
     return;
   }
 
-  if (!isMemberOfRoom(client, roomId)) {
-    client.send("You are not joined in the room.");
+  if (!isMemberOfRoom(client, localRoom.id)) {
+    client.send(
+      JSON.stringify({
+        code: "not_joined_in_the_room",
+        roomId: localRoom.id,
+
+        message: "You are not joined in the room.",
+      }),
+    );
     return;
   }
 
   localRoom.members.delete(client);
-  client.send("You leaved the room.");
+
+  client.send(
+    JSON.stringify({
+      code: "leaved_room",
+      roomId: localRoom.id,
+      members: localRoom.members,
+      message: "You leaved the room.",
+    }),
+  );
 }
 
 export default server;

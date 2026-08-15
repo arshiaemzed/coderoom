@@ -31,7 +31,10 @@ async function createRoom(
 async function doesRoomExists(
   roomId: string,
 ): Promise<DatabaseRoom | undefined> {
-  const query = await db.query("SELECT id FROM rooms WHERE id = $1", [roomId]);
+  const query = await db.query(
+    `SELECT id, user_id AS "userId" FROM rooms WHERE id = $1`,
+    [roomId],
+  );
 
   const result = query.rows[0];
 
