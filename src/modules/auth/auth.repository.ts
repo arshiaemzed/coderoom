@@ -5,19 +5,41 @@ import {
   type UserPasswordInfo,
 } from "./auth.types.js";
 
-async function signUp(email: string, passwordHash: string): Promise<User> {
-  const query = await db.query<User>(
-    "INSERT INTO users (email, password) VALUES($1, $2) RETURNING id, email;",
-    [email, passwordHash],
-  );
+async function signUp(
+  email: string,
+  passwordHash: string,
+  displayName: string,
+): Promise<User> {
+  const client = await db.connect();
 
-  const user = query.rows[0];
+  try {
+    await client.query("BEGIN");
 
-  if (!user) {
-    throw new Error("Failed to create the user.");
+    const query = await client.query<User>(
+      "INSERT INTO users (email, password) VALUES($1, $2) RETURNING id, email;",
+      [email, passwordHash],
+    );
+
+    const user = query.rows[0];
+
+    if (!user) {
+      throw new Error("Failed to create the user.");
+    }
+
+    await client.query(
+      "INSERT INTO profiles(user_id, display_name) VALUES ($1, $2)",
+      [user.id, displayName],
+    );
+
+    await client.query("COMMIT;");
+
+    return user;
+  } catch (error) {
+    await client.query("ROLLBACK;");
+    throw error;
+  } finally {
+    await client.release();
   }
-
-  return user;
 }
 
 async function userExists(email: string): Promise<boolean> {

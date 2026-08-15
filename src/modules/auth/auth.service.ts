@@ -4,7 +4,7 @@ import argon2 from "argon2";
 import errorCodes from "../../shared/errors/errorCodes.js";
 import crypto from "crypto";
 
-async function signUp(email: string, password: string) {
+async function signUp(email: string, password: string, displayName: string) {
   const userExists: boolean = await authRepository.userExists(email);
 
   if (userExists) {
@@ -21,7 +21,7 @@ async function signUp(email: string, password: string) {
     memoryCost: 2 ** 16, // 2^16 = 65536 KiB / 64 MIB
   });
 
-  const user = await authRepository.signUp(email, hashedPassword);
+  const user = await authRepository.signUp(email, hashedPassword, displayName);
 
   return user;
 }
