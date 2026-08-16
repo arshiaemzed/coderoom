@@ -54,9 +54,16 @@ async function login(email: string, password: string) {
     .update(sessionToken)
     .digest("hex");
 
-  await authRepository.createAuthSession(tokenHash, user.id);
+  const createdSession = await authRepository.createAuthSession(
+    tokenHash,
+    user.id,
+  );
 
-  return { id: user.id, token: sessionToken };
+  return {
+    id: createdSession.userId,
+    displayName: createdSession.displayName,
+    token: sessionToken,
+  };
 }
 
 export default {

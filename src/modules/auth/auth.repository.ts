@@ -106,7 +106,7 @@ async function createAuthSession(
 async function findSessionByTokenHash(
   tokenHash: string,
 ): Promise<AuthSession | undefined> {
-  const query = await db.query(
+  const query = await db.query<AuthSession>(
     `
     SELECT 
       user_sessions.id, 

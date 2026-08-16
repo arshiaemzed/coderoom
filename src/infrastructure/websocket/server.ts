@@ -101,7 +101,7 @@ async function auth(client: WebSocket, token: string) {
     client.send(
       JSON.stringify({
         type: "message",
-        message: "This session credential is already begin used.",
+        message: "You are already connected to the server",
       }),
     );
     client.close();
@@ -114,6 +114,17 @@ async function auth(client: WebSocket, token: string) {
 
   if (!valid) {
     client.send(JSON.stringify({ type: "message", message: "Invalid token." }));
+    client.close();
+    return;
+  }
+
+  if (clients.values().find((e) => e.userId == valid.userId)) {
+    client.send(
+      JSON.stringify({
+        type: "message",
+        message: "There is someone already connected using the same creds.",
+      }),
+    );
     client.close();
     return;
   }
