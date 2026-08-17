@@ -1,9 +1,10 @@
 import { WebSocketServer, WebSocket } from "ws";
 import {
-  type AuthEvent,
+  type Cursor,
   type Client,
   type Event,
   type Room,
+  type Message,
 } from "./websocket.types.js";
 import authRepository from "../../modules/auth/auth.repository.js";
 import crypto from "crypto";
@@ -45,6 +46,14 @@ server.on("connection", (socket: WebSocket) => {
           case "send_message":
             sendMessage(socket, userEvent.room, userEvent.message ?? "");
             break;
+          case "move_cursor":
+            moveCursor(
+              socket,
+              userEvent.room,
+              userEvent.dx ?? 0,
+              userEvent.dy ?? 0,
+            );
+            break;
         }
       }
     } catch (error) {
@@ -57,9 +66,67 @@ server.on("connection", (socket: WebSocket) => {
 
     console.log("Client disconnected");
     clients.delete(socket);
-    room?.members.delete(socket);
+
+    if (!room) {
+      return;
+    }
+
+    room.members.delete(socket);
+    room.cursors.delete(socket);
   });
 });
+
+function moveCursor(client: WebSocket, roomId: string, dx: number, dy: number) {
+  if (!clients.get(client)) {
+    client.send(
+      JSON.stringify({ type: "message", message: "You are not authenticated" }),
+    );
+    // client.close();
+    return;
+  }
+
+  if (!isMemberOfRoom(client, roomId)) {
+    client.send(
+      JSON.stringify({
+        type: "message",
+        message: "You are not authorized to send message in this room.",
+      }),
+    );
+    return;
+  }
+
+  const room = rooms.find((e) => e.id === roomId);
+
+  if (!room) {
+    client.send(
+      JSON.stringify({
+        type: "message",
+        message: "Failed to find the room.",
+      }),
+    );
+    return;
+  }
+
+  const user = room.members.get(client);
+
+  if (!user) {
+    client.send(
+      JSON.stringify({
+        type: "message",
+        message: "Failed to find you as a member of this room.",
+      }),
+    );
+    return;
+  }
+
+  room.cursors.set(client, {
+    userId: user.userId,
+    dx: dx,
+    dy: dy,
+    displayName: user.displayName,
+  });
+  updateRoomData(room.id);
+}
 
 function sendMessage(client: WebSocket, roomId: string, message: string) {
   if (!clients.get(client)) {
@@ -84,16 +151,35 @@ function sendMessage(client: WebSocket, roomId: string, message: string) {
 
   const room = rooms.find((e) => e.id === roomId);
 
-  room!.members.forEach((e, k) => {
-    k.send(
+  if (!room) {
+    client.send(
       JSON.stringify({
         type: "message",
-        roomId: roomId,
-        room: room,
-        message: message,
+        message: "Failed to find the room.",
       }),
     );
+    return;
+  }
+
+  const user = room?.members.get(client);
+
+  if (!user) {
+    client.send(
+      JSON.stringify({
+        type: "message",
+        message: "Failed to find you as a member of this room.",
+      }),
+    );
+    return;
+  }
+
+  room.messages.push({
+    userId: user.userId,
+    message: message,
+    displayName: user.displayName,
   });
+
+  updateRoomData(room.id);
 }
 
 async function auth(client: WebSocket, token: string) {
@@ -136,7 +222,7 @@ async function auth(client: WebSocket, token: string) {
 function isMemberOfRoom(client: WebSocket, roomId: string): boolean {
   const room: Room | undefined = rooms.find((e) => e.id === roomId);
 
-  const find = room?.members.has(client) ? true : false;
+  const find = room?.members.get(client) ? true : false;
 
   return find;
 }
@@ -175,19 +261,39 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
 
   const user = clients.get(client);
 
+  if (!user) {
+    client.send(
+      JSON.stringify({
+        type: "message",
+        message: "Failed to find you as client disconnecting ...",
+      }),
+    );
+    client.close();
+    return;
+  }
+
   if (!localRoom) {
     const newRoom = {
       id: databaseRoom.id,
       name: databaseRoom.name,
       members: new Map<WebSocket, Client>(),
+      cursors: new Map<WebSocket, Cursor>(),
+      messages: new Array<Message>(),
       owner: databaseRoom.userId,
     };
 
     rooms.push(newRoom);
 
     newRoom.members.set(client, {
-      userId: user!.userId,
-      displayName: user?.displayName!,
+      userId: user.userId,
+      displayName: user.displayName,
+    });
+
+    newRoom.cursors.set(client, {
+      userId: user.userId,
+      dx: 0,
+      dy: 0,
+      displayName: user.displayName,
     });
 
     client.send(
@@ -216,10 +322,9 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
     return;
   }
 
-  // at this point user.userId is not null because we checked user authentication at the beginning
   localRoom.members.set(client, {
-    userId: user?.userId!,
-    displayName: user?.displayName!,
+    userId: user.userId,
+    displayName: user.displayName,
   });
 
   client.send(
@@ -288,6 +393,7 @@ async function checkRoomAndLeave(client: WebSocket, roomId: string) {
   }
 
   localRoom.members.delete(client);
+  localRoom.cursors.delete(client);
 
   client.send(
     JSON.stringify({
@@ -304,14 +410,20 @@ async function checkRoomAndLeave(client: WebSocket, roomId: string) {
 function updateRoomData(roomId: string) {
   const room = rooms.find((e) => e.id === roomId);
 
-  room!.members.forEach((e, k) => {
+  if (!room) {
+    return;
+  }
+
+  room.members.forEach((e, k) => {
     k.send(
       JSON.stringify({
         code: "room_updated",
-        roomId: room?.id,
-        name: room?.name,
-        owner: room?.owner,
-        members: Array.from(room!.members.values()),
+        roomId: room.id,
+        name: room.name,
+        owner: room.owner,
+        messages: room.messages,
+        members: Array.from(room.members.values()),
+        cursors: Array.from(room.cursors.values()),
       }),
     );
   });
