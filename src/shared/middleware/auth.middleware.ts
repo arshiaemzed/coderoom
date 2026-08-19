@@ -52,8 +52,6 @@ async function authMiddleware(req: Request, res: Response, next: NextFunction) {
       );
     }
 
-    console.log(userSession);
-
     Object.defineProperty(req, "user", {
       configurable: false,
       value: userSession,

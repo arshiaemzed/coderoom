@@ -4,50 +4,27 @@ import connectionManager from "../connection-manager.js";
 import { WebSocket } from "ws";
 import type { Client, Cursor, Message, Room } from "../websocket.types.js";
 import roomManager from "../room-manager.js";
+import WebSocketError from "../websocket.error.js";
 
 async function checkRoomAndJoin(client: WebSocket, roomId: string) {
-  if (!connectionManager.get(client)) {
-    client.send(
-      JSON.stringify({
-        code: "not_authenticated",
-        roomId: roomId,
-        message: "You are not authenticated",
-      }),
-    );
-    client.close();
-    return;
-  }
-
-  const clients = connectionManager.getAll();
+  connectionManager.checkAuth(client);
 
   const databaseRoom: DatabaseRoom | undefined =
     await roomsRepository.doesRoomExists(roomId);
 
   if (!databaseRoom) {
-    client.send(
-      JSON.stringify({
-        code: "room_does_not_exists",
-        roomId: roomId,
-        message: "Room does not exists.",
-      }),
-    );
-    client.send("Room does not exists.");
-    return;
+    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
   }
 
   const localRoom: Room | undefined = roomManager.findRoomById(databaseRoom.id);
-
-  const user = clients.get(client);
+  const user = connectionManager.get(client);
 
   if (!user) {
-    client.send(
-      JSON.stringify({
-        type: "message",
-        message: "Failed to find you as client disconnecting ...",
-      }),
-    );
     client.close();
-    return;
+    throw new WebSocketError(
+      "USER_NOT_AUTHENTICATED",
+      "You are not authenticated.",
+    );
   }
 
   if (!localRoom) {
@@ -62,29 +39,29 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
 
     roomManager.addNewRoom(newRoom);
 
-    newRoom.members.set(client, {
+    roomManager.addMember(client, newRoom.id, {
       userId: user.userId,
       displayName: user.displayName,
     });
 
-    newRoom.cursors.set(client, {
+    roomManager.addCursor(client, newRoom.id, {
       userId: user.userId,
       dx: 0,
       dy: 0,
       displayName: user.displayName,
     });
 
-    client.send(
-      JSON.stringify({
-        code: "you_joined_room",
-        message: "You joined the room",
-        members: Array.from(newRoom.members.values()),
-        cursors: Array.from(newRoom.cursors.values()),
-        messages: newRoom.messages,
-        roomId: databaseRoom.id,
-        roomName: newRoom.name,
-      }),
-    );
+    const newRoomData = {
+      code: "you_joined_room",
+      message: "You joined the room",
+      members: Array.from(newRoom.members.values()),
+      cursors: Array.from(newRoom.cursors.values()),
+      messages: newRoom.messages,
+      roomId: databaseRoom.id,
+      roomName: newRoom.name,
+    };
+
+    client.send(JSON.stringify(newRoomData));
 
     updateRoomData(newRoom.id);
 
@@ -92,108 +69,67 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   }
 
   if (roomManager.isMember(client, localRoom.id)) {
-    client.send(
-      JSON.stringify({
-        code: "already_joined_in_room",
-        roomId: roomId,
-        message: "You are already joined in this room.",
-      }),
+    throw new WebSocketError(
+      "USER_ALREADY_JOINED_IN_ROOM",
+      "You are already joined  this room.",
     );
-    return;
   }
 
-  localRoom.members.set(client, {
+  roomManager.addMember(client, localRoom.id, {
     userId: user.userId,
     displayName: user.displayName,
   });
 
-  client.send(
-    JSON.stringify({
-      code: "you_joined_room",
-      message: "You joined the room",
-      members: Array.from(localRoom.members.values()),
-      messages: localRoom.messages,
-      roomId: localRoom.id,
-      cursors: Array.from(localRoom.cursors.values()),
-      roomName: localRoom.name,
-    }),
-  );
+  roomManager.addCursor(client, localRoom.id, {
+    userId: user.userId,
+    dx: 0,
+    dy: 0,
+    displayName: user.displayName,
+  });
+
+  const localRoomData = {
+    code: "you_joined_room",
+    message: "You joined the room",
+    members: Array.from(localRoom.members.values()),
+    messages: localRoom.messages,
+    roomId: localRoom.id,
+    cursors: Array.from(localRoom.cursors.values()),
+    roomName: localRoom.name,
+  };
+
+  client.send(JSON.stringify(localRoomData));
   updateRoomData(localRoom.id);
 }
 
 async function checkRoomAndLeave(client: WebSocket, roomId: string) {
-  if (!connectionManager.get(client)) {
-    client.send(
-      JSON.stringify({
-        code: "not_authenticated",
-        roomId: roomId,
-        message: "You are not authenticated",
-      }),
-    );
-    client.close();
-    return;
-  }
+  connectionManager.checkAuth(client);
 
-  const rooms = roomManager.getAll();
+  const data = roomManager.requireRoomMember(client, roomId);
 
-  const databaseRoom: DatabaseRoom | undefined =
-    await roomsRepository.doesRoomExists(roomId);
+  roomManager.removeMember(client, data.room.id);
+  roomManager.removeCursor(client, data.room.id);
 
-  if (!databaseRoom) {
-    client.send(
-      JSON.stringify({
-        code: "room_does_not_exists",
-        roomId: roomId,
-        message: "Room does not exists",
-      }),
-    );
-    return;
-  }
+  const leavedRoomData = {
+    code: "leaved_room",
+    roomId: data.room.id,
+    roomName: data.room.name,
+    members: Array.from(data.room.members.values()),
+    cursors: Array.from(data.room.cursors.values()),
+    messages: data.room.messages,
+    message: "You leaved the room.",
+  };
 
-  const localRoom: Room | undefined = roomManager.findRoomById(databaseRoom.id);
+  leavedRoomData;
 
-  if (!localRoom) {
-    client.send(
-      JSON.stringify({
-        code: "room_not_active",
-        roomId: roomId,
-        message: "The room that you are trying to leave is not active.",
-      }),
-    );
-    return;
-  }
-
-  if (!roomManager.isMember(client, localRoom.id)) {
-    client.send(
-      JSON.stringify({
-        code: "not_joined_in_the_room",
-        roomId: localRoom.id,
-        message: "You are not joined in the room.",
-      }),
-    );
-    return;
-  }
-
-  localRoom.members.delete(client);
-  localRoom.cursors.delete(client);
-
-  client.send(
-    JSON.stringify({
-      code: "leaved_room",
-      roomId: localRoom.id,
-      roomName: localRoom.name,
-      members: Array.from(localRoom.members.values()),
-      message: "You leaved the room.",
-    }),
-  );
-  updateRoomData(localRoom.id);
+  client.send(JSON.stringify(leavedRoomData));
+  updateRoomData(data.room.id);
 }
 
 function updateRoomData(roomId: string) {
   const room = roomManager.findRoomById(roomId);
 
   if (!room) {
-    return;
+    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
   }
 
   room.members.forEach((e, k) => {

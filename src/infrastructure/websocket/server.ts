@@ -2,12 +2,22 @@ import { WebSocketServer, WebSocket } from "ws";
 import eventRouter from "./event-router.js";
 import roomManager from "./room-manager.js";
 import connectionManager from "./connection-manager.js";
+import WebSocketError from "./websocket.error.js";
 
 const server = new WebSocketServer({ port: 3002 });
 
 server.on("connection", (socket: WebSocket) => {
   socket.on("message", async (e) => {
-    await eventRouter(socket, e);
+    try {
+      await eventRouter(socket, e);
+    } catch (error) {
+      if (error instanceof WebSocketError) {
+        socket.send(
+          JSON.stringify({ code: error.code, message: error.message }),
+        );
+      }
+      console.log(`catched error: ${error}`);
+    }
   });
 
   socket.on("close", () => {

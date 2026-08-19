@@ -1,3 +1,4 @@
+import WebSocketError from "./websocket.error.js";
 import { type Client } from "./websocket.types.js";
 import { type WebSocket } from "ws";
 
@@ -17,6 +18,16 @@ function get(socket: WebSocket): Client | undefined {
   return user;
 }
 
+function checkAuth(socket: WebSocket) {
+  const user = get(socket);
+  if (!user) {
+    throw new WebSocketError(
+      "USER_NOT_AUTHENTICATED",
+      "You are not authenticated.",
+    );
+  }
+}
+
 function getAll(): Map<WebSocket, Client> {
   return clients;
 }
@@ -26,42 +37,5 @@ export default {
   remove,
   get,
   getAll,
+  checkAuth,
 };
-
-// async function onMessage(socket: WebSocket, data) {
-//   try {
-//     const event = JSON.parse(data.toString());
-
-//     // Authentication Events
-//     if (event.type === "login" && event.token) {
-//       await auth(socket, event.token);
-//     }
-
-//     // Normal events
-//     if (clients.get(socket) && event.type !== "login" && !event.token) {
-//       const userEvent: Event = event;
-
-//       switch (userEvent.type) {
-//         case "join_room":
-//           await checkRoomAndJoin(socket, userEvent.room);
-//           break;
-//         case "leave_room":
-//           await checkRoomAndLeave(socket, userEvent.room);
-//           break;
-//         case "send_message":
-//           sendMessage(socket, userEvent.room, userEvent.message ?? "");
-//           break;
-//         case "move_cursor":
-//           moveCursor(
-//             socket,
-//             userEvent.room,
-//             userEvent.dx ?? 0,
-//             userEvent.dy ?? 0,
-//           );
-//           break;
-//       }
-//     }
-//   } catch (error) {
-//     throw error;
-//   }
-// }

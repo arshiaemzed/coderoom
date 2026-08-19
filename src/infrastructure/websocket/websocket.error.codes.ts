@@ -1,0 +1,11 @@
+type codes = {
+  USER_NOT_JOINED_IN_ROOM: string;
+  USER_ALREADY_JOINED_IN_ROOM: string;
+  ROOM_NOT_FOUND: string;
+  USER_NOT_AUTHENTICATED: string;
+  CURSOR_NOT_FOUND: string;
+};
+
+type WebSocketErrorCode = keyof codes;
+
+export type { WebSocketErrorCode };
