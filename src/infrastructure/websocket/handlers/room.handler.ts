@@ -5,6 +5,7 @@ import { WebSocket } from "ws";
 import type { Client, Cursor, Message, Room } from "../websocket.types.js";
 import roomManager from "../room-manager.js";
 import WebSocketError from "../websocket.error.js";
+import { Socket } from "node:dgram";
 
 async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   connectionManager.checkAuth(client);
@@ -17,7 +18,7 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   }
 
   const localRoom: Room | undefined = roomManager.findRoomById(databaseRoom.id);
-  const user = connectionManager.get(client);
+  const user: Client | undefined = connectionManager.get(client);
 
   if (!user) {
     client.close();
@@ -63,7 +64,14 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
 
     client.send(JSON.stringify(newRoomData));
 
-    updateRoomData(newRoom.id);
+    newRoom.members.forEach((client: Client, socket: WebSocket) => {
+      socket.send(
+        JSON.stringify({
+          code: "user_joined",
+          user: { userId: user.userId, displayName: user.displayName },
+        }),
+      );
+    });
 
     return;
   }
@@ -98,7 +106,15 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   };
 
   client.send(JSON.stringify(localRoomData));
-  updateRoomData(localRoom.id);
+
+  localRoom.members.forEach((client: Client, socket: WebSocket) => {
+    socket.send(
+      JSON.stringify({
+        code: "user_joined",
+        user: { userId: user.userId, displayName: user.displayName },
+      }),
+    );
+  });
 }
 
 async function checkRoomAndLeave(client: WebSocket, roomId: string) {
@@ -119,29 +135,16 @@ async function checkRoomAndLeave(client: WebSocket, roomId: string) {
     message: "You leaved the room.",
   };
 
-  leavedRoomData;
-
   client.send(JSON.stringify(leavedRoomData));
-  updateRoomData(data.room.id);
-}
 
-function updateRoomData(roomId: string) {
-  const room = roomManager.findRoomById(roomId);
-
-  if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
-  }
-
-  room.members.forEach((e, k) => {
-    k.send(
+  data.room.members.forEach((client: Client, socket: WebSocket) => {
+    socket.send(
       JSON.stringify({
-        code: "room_updated",
-        roomId: room.id,
-        name: room.name,
-        owner: room.owner,
-        messages: room.messages,
-        members: Array.from(room.members.values()),
-        cursors: Array.from(room.cursors.values()),
+        code: "user_leaved",
+        user: {
+          userId: data.member.userId,
+          displayName: data.member.displayName,
+        },
       }),
     );
   });
@@ -150,5 +153,4 @@ function updateRoomData(roomId: string) {
 export default {
   checkRoomAndJoin,
   checkRoomAndLeave,
-  updateRoomData,
 };

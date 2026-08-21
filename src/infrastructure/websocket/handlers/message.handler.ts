@@ -13,8 +13,6 @@ function sendMessage(client: WebSocket, roomId: string, message: string) {
     displayName: data.member.displayName,
     message: message,
   });
-
-  roomHandler.updateRoomData(data.room.id);
 }
 
 export default { sendMessage };

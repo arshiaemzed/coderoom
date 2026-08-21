@@ -10,8 +10,6 @@ function moveCursor(client: WebSocket, roomId: string, dx: number, dy: number) {
   roomManager.requireRoomMember(client, roomId);
 
   roomManager.updateCursor(client, roomId, dx, dy);
-
-  // roomHandler.updateRoomData(data.room.id);
 }
 
 export default {

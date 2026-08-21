@@ -15,8 +15,8 @@ server.on("connection", (socket: WebSocket) => {
         socket.send(
           JSON.stringify({ code: error.code, message: error.message }),
         );
+        console.log(`catched error: ${error.message}`);
       }
-      console.log(`catched error: ${error}`);
     }
   });
 

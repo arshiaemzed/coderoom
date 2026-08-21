@@ -3,7 +3,6 @@ import connectionManager from "./connection-manager.js";
 import WebSocketError from "./websocket.error.js";
 import type { Client, Cursor, Message, Room } from "./websocket.types.js";
 import { WebSocket } from "ws";
-import { Socket } from "node:dgram";
 
 let rooms: Array<Room> = [];
 
@@ -92,6 +91,10 @@ function addMessage(socket: WebSocket, roomId: string, message: Message): void {
   }
 
   room.messages.push(message);
+
+  room.members.forEach((client, socket) => {
+    socket.send(JSON.stringify({ code: "new_message", message: message }));
+  });
 }
 
 function removeMember(socket: WebSocket, roomId: string): void {
