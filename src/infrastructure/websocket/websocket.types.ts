@@ -1,5 +1,10 @@
 import WebSocket from "ws";
-type eventType = "join_room" | "leave_room" | "send_message" | "move_cursor";
+type eventType =
+  | "join_room"
+  | "leave_room"
+  | "send_message"
+  | "move_cursor"
+  | "upload_file";
 
 type authEventType = "login";
 

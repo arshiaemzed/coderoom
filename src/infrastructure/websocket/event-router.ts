@@ -34,6 +34,9 @@ async function eventRouter(socket: WebSocket, data: any) {
           userEvent.message ?? "",
         );
         break;
+
+      case "upload_file":
+        break;
       case "move_cursor":
         cursorHandler.moveCursor(
           socket,

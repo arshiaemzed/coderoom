@@ -1,7 +1,6 @@
 import connectionManager from "../connection-manager.js";
 import { WebSocket } from "ws";
 import roomManager from "../room-manager.js";
-import roomHandler from "./room.handler.js";
 
 function sendMessage(client: WebSocket, roomId: string, message: string) {
   connectionManager.checkAuth(client);

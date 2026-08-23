@@ -4,6 +4,7 @@ import errorCodes from "../errors/errorCodes.js";
 import argon2 from "argon2";
 import authRepository from "../../modules/auth/auth.repository.js";
 import crypto from "crypto";
+import type { AuthSession } from "../../modules/auth/auth.types.js";
 
 async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const header = req.headers;
@@ -42,7 +43,8 @@ async function authMiddleware(req: Request, res: Response, next: NextFunction) {
       .update(authorization)
       .digest("hex");
 
-    const userSession = await authRepository.findSessionByTokenHash(tokenHash);
+    const userSession: AuthSession | undefined =
+      await authRepository.findSessionByTokenHash(tokenHash);
 
     if (!userSession) {
       throw new AppError(

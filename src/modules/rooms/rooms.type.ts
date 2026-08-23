@@ -5,4 +5,13 @@ interface DatabaseRoom {
   createdAt: Date;
 }
 
-export type { DatabaseRoom };
+interface RoomFile {
+  id: string;
+  roomId: string;
+  fileName: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type { DatabaseRoom, RoomFile };
