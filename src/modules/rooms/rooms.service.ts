@@ -11,6 +11,15 @@ async function requireRoom(roomId: string) {
   }
 }
 
+async function requireOwnerPermission(roomId: string, userId: string) {
+  const isOwner: boolean = await roomsRepository.isOwnerOfTheRoom(
+    roomId,
+    userId,
+  );
+
+  return isOwner;
+}
+
 async function createRoom(
   userId: string,
   name: string | undefined,
@@ -56,4 +65,5 @@ export default {
   deleteRoom,
   getAllRooms,
   requireRoom,
+  requireOwnerPermission,
 };

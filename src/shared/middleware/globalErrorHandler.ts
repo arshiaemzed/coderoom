@@ -35,6 +35,16 @@ function globalErrorHandler(
     return res.status(statusCode).json(errorResponse);
   }
 
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: "MALFORMED_JSON",
+        message: "Malformed json provided for request body.",
+      },
+    });
+  }
+
   console.log(err);
 
   return res.status(500).json({
