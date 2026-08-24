@@ -16,7 +16,7 @@ async function inviteUser(
   invitedUserId: string,
   roomId: string,
   invitedBy: string,
-): Promise<InvitedUser | undefined> {
+): Promise<InvitedUser> {
   const query = await db.query(
     `
         INSERT INTO invites
@@ -32,6 +32,30 @@ async function inviteUser(
     [invitedUserId, roomId, invitedBy],
   );
 
+  return query.rows[0];
+}
+
+async function revokeInvite(
+  roomId: string,
+  targetId: string,
+): Promise<InvitedUser | undefined> {
+  const query = await db.query(
+    `
+      DELETE FROM invites 
+      WHERE 
+        room_id = $1 
+      AND 
+        user_id = $2
+      RETURNING  
+        id,
+        user_id AS "userId",
+        room_id AS "roomId",
+        invited_by AS "invitedBy",
+        created_at AS "createdAt";      
+    `,
+    [roomId, targetId],
+  );
+
   const result: InvitedUser | undefined = query.rows[0];
 
   return result;
@@ -39,5 +63,6 @@ async function inviteUser(
 
 export default {
   inviteUser,
+  revokeInvite,
   hasBeenAlreadyInvited,
 };

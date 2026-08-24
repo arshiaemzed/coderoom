@@ -33,24 +33,46 @@ async function inviteUser(
     throw new AppError(
       403,
       "You are not allowed to invite users.",
-      errorCodes.NOT_ENOUGH_PERMISSION_TO_UPLOAD_FILES,
+      errorCodes.NOT_ENOUGH_PERMISSION_TO_INVITE_USERS,
     );
   }
 
-  const invitedUser: InvitedUser | undefined =
-    await inviteRepository.inviteUser(invitedUserId, roomId, userId);
-
-  if (!invitedUser) {
-    throw new AppError(
-      500,
-      "Failed to invite the user.",
-      errorCodes.FAILED_TO_INVITE_USER,
-    );
-  }
+  const invitedUser: InvitedUser = await inviteRepository.inviteUser(
+    invitedUserId,
+    roomId,
+    userId,
+  );
 
   return invitedUser;
 }
 
+async function revokeInvite(roomId: string, userId: string, targetId: string) {
+  await roomsService.requireRoom(roomId);
+
+  const isOwner: boolean = await roomsService.requireOwnerPermission(
+    roomId,
+    userId,
+  );
+
+  if (!isOwner) {
+    throw new AppError(
+      403,
+      "You are not allowed to revoke invites.",
+      errorCodes.NOT_ENOUGH_PERMISSION_TO_REVOKE_INVITES,
+    );
+  }
+
+  const deletedInvite: InvitedUser | undefined =
+    await inviteRepository.revokeInvite(roomId, targetId);
+
+  if (!deletedInvite) {
+    throw new AppError(404, "Invite not found.", errorCodes.INVITE_NOT_FOUND);
+  }
+
+  return deletedInvite;
+}
+
 export default {
   inviteUser,
+  revokeInvite,
 };

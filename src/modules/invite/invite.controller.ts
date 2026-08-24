@@ -18,6 +18,23 @@ async function inviteUser(req: Request, res: Response) {
   return res.status(200).json(invitedUser);
 }
 
+async function revokeInvite(req: Request, res: Response) {
+  const roomId = req.params.roomid as string;
+
+  const userId: string = req.user.userId;
+
+  const targetId = req.body.user_id;
+
+  const revokedInviteUser: InvitedUser = await inviteService.revokeInvite(
+    roomId,
+    userId,
+    targetId,
+  );
+
+  return res.status(200).json(revokedInviteUser);
+}
+
 export default {
   inviteUser,
+  revokeInvite,
 };

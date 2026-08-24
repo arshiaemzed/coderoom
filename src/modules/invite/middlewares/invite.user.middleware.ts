@@ -16,7 +16,7 @@ function inviteUserMiddleware(req: Request, res: Response, next: NextFunction) {
     throw new AppError(
       400,
       "Invalid user_id provided for inviting a user.",
-      errorCodes.INVALID_USER_ID_FOR_INVITING_FIELD,
+      errorCodes.INVALID_FIELD,
     );
   }
 
