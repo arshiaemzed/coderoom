@@ -80,7 +80,7 @@ async function deleteRoom(
   return result;
 }
 
-async function getAllRooms() {
+async function getUserRooms(userId: string) {
   const query = await db.query(
     `
     SELECT 
@@ -90,6 +90,7 @@ async function getAllRooms() {
       created_at AS "createdAt"
     FROM rooms
     `,
+    [userId],
   );
   return query.rows;
 }
@@ -99,5 +100,5 @@ export default {
   deleteRoom,
   doesRoomExists,
   isOwnerOfTheRoom,
-  getAllRooms,
+  getUserRooms,
 };

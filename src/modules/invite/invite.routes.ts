@@ -34,4 +34,10 @@ inviteRouter.post(
   inviteController.declineInvite,
 );
 
+inviteRouter.get(
+  "/rooms/:roomid/invites",
+  authMiddleware,
+  inviteController.getUserInvites,
+);
+
 export default inviteRouter;

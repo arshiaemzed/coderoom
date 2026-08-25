@@ -15,20 +15,6 @@ async function checkForInvite(
   return result;
 }
 
-async function checkMembership(
-  roomId: string,
-  userId: string,
-): Promise<boolean> {
-  const query = await db.query(
-    "SELECT id FROM room_members WHERE user_id = $1 AND room_id = $2",
-    [userId, roomId],
-  );
-
-  const result = query.rowCount === null ? false : query.rowCount > 0;
-
-  return result;
-}
-
 async function inviteUser(
   invitedUserId: string,
   roomId: string,
@@ -142,11 +128,22 @@ async function declineInvite(
   return result;
 }
 
+async function getInvites(userId: string) {
+  const query = await db.query(
+    `
+      SELECT * FROM invites where user_id = $1;
+    `,
+    [userId],
+  );
+
+  return query.rows;
+}
+
 export default {
   inviteUser,
   revokeInvite,
   checkForInvite,
   acceptInvite,
   declineInvite,
-  checkMembership,
+  getInvites,
 };

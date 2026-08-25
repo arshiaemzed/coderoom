@@ -60,9 +60,18 @@ async function declineInvite(req: Request, res: Response) {
   return res.status(200).json(declinedInvite);
 }
 
+async function getUserInvites(req: Request, res: Response) {
+  const userId = req.user.userId;
+
+  const userInvites = await inviteService.getInvites(userId);
+
+  return res.status(200).json(userInvites);
+}
+
 export default {
   inviteUser,
   revokeInvite,
   acceptInvite,
   declineInvite,
+  getUserInvites,
 };

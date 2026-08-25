@@ -7,12 +7,12 @@ import deleteRoomMiddleware from "./middlewares/deleteRoomMiddleware.js";
 
 const roomsRouter: Router = express.Router();
 
-roomsRouter.get("/rooms", roomsController.getAllRooms);
+roomsRouter.get("/rooms", authMiddleware, roomsController.getAllRooms);
 
-roomsRouter.post("/rooms/create", authMiddleware, roomsController.createRoom);
+roomsRouter.post("/rooms", authMiddleware, roomsController.createRoom);
 
 roomsRouter.delete(
-  "/rooms/:id/delete",
+  "/rooms/:id",
   authMiddleware,
   deleteRoomMiddleware,
   roomsController.deleteRoom,

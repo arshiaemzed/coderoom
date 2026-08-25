@@ -4,30 +4,7 @@ import errorCodes from "../../shared/errors/errorCodes.js";
 import roomsService from "../rooms/rooms.service.js";
 import inviteRepository from "./invite.repository.js";
 import type { InvitedUser, RoomMember } from "./invite.type.js";
-
-async function requireMembership(roomId: string, userId: string) {
-  const member = await inviteRepository.checkMembership(roomId, userId);
-
-  if (!member) {
-    throw new AppError(
-      403,
-      "You are not member of this room.",
-      errorCodes.NOT_MEMBER_OF_ROOM,
-    );
-  }
-}
-
-async function requireTargetMembership(roomId: string, targetId: string) {
-  const member = await inviteRepository.checkMembership(roomId, targetId);
-
-  if (!member) {
-    throw new AppError(
-      403,
-      "The specificed user is not member of the room.",
-      errorCodes.NOT_MEMBER_OF_ROOM,
-    );
-  }
-}
+import memberRepository from "../member/member.repository.js";
 
 async function inviteUser(
   invitedUserId: string,
@@ -62,7 +39,7 @@ async function inviteUser(
     );
   }
 
-  const isAlreadyMember: boolean = await inviteRepository.checkMembership(
+  const isAlreadyMember: boolean = await memberRepository.checkMembership(
     roomId,
     invitedUserId,
   );
@@ -126,7 +103,7 @@ async function acceptInvite(roomId: string, userId: string) {
     );
   }
 
-  const isAlreadyMember: boolean = await inviteRepository.checkMembership(
+  const isAlreadyMember: boolean = await memberRepository.checkMembership(
     roomId,
     userId,
   );
@@ -170,9 +147,16 @@ async function declineInvite(roomId: string, userId: string) {
   return declinedInvite;
 }
 
+async function getInvites(userId: string) {
+  const userInvites = await inviteRepository.getInvites(userId);
+
+  return userInvites;
+}
+
 export default {
   inviteUser,
   revokeInvite,
   acceptInvite,
   declineInvite,
+  getInvites,
 };

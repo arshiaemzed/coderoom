@@ -1,7 +1,8 @@
-import type { DatabaseRoom, RoomFile } from "./rooms.type.js";
+import type { DatabaseRoom } from "./rooms.type.js";
 import roomsRepository from "./rooms.repository.js";
 import AppError from "../../shared/errors/error.js";
 import errorCodes from "../../shared/errors/errorCodes.js";
+import inviteRepository from "../invite/invite.repository.js";
 
 async function requireRoom(roomId: string) {
   const room = await roomsRepository.doesRoomExists(roomId);
@@ -45,17 +46,18 @@ async function deleteRoom(
     );
   }
 
-  const deletedRoom = await roomsRepository.deleteRoom(roomId, userId);
+  const deletedRoom: DatabaseRoom | undefined =
+    await roomsRepository.deleteRoom(roomId, userId);
 
-  if (!deleteRoom) {
+  if (!deletedRoom) {
     throw new Error("Failed to delete the room");
   }
 
-  return deletedRoom!;
+  return deletedRoom;
 }
 
-async function getAllRooms() {
-  const rooms = await roomsRepository.getAllRooms();
+async function getUserRooms(userId: string) {
+  const rooms = await roomsRepository.getUserRooms(userId);
 
   return rooms;
 }
@@ -63,7 +65,7 @@ async function getAllRooms() {
 export default {
   createRoom,
   deleteRoom,
-  getAllRooms,
+  getUserRooms,
   requireRoom,
   requireOwnerPermission,
 };

@@ -1,6 +1,5 @@
 import { type Request, type Response } from "express";
 import roomsService from "./rooms.service.js";
-import AppError from "../../shared/errors/error.js";
 
 async function createRoom(req: Request, res: Response) {
   let roomName: string | undefined;
@@ -27,7 +26,9 @@ async function deleteRoom(req: Request, res: Response) {
 }
 
 async function getAllRooms(req: Request, res: Response) {
-  const rooms = await roomsService.getAllRooms();
+  const userId = req.user.userId;
+
+  const rooms = await roomsService.getUserRooms(userId);
 
   return res.status(200).json(rooms);
 }
