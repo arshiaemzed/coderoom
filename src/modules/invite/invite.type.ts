@@ -6,4 +6,10 @@ interface InvitedUser {
   createdAt: Date;
 }
 
-export type { InvitedUser };
+interface RoomMember {
+  id: string;
+  userId: string;
+  roomId: string;
+}
+
+export type { InvitedUser, RoomMember };

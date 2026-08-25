@@ -19,6 +19,7 @@ function revokeInviteMiddleware(
       errorCodes.INVALID_FIELD,
     );
   }
+  next();
 }
 
 export default revokeInviteMiddleware;
