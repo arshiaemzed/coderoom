@@ -28,6 +28,27 @@ async function uploadFile(
   return result;
 }
 
+async function getSpecificFile(fileId: string): Promise<File | undefined> {
+  const query = await db.query(
+    `
+      SELECT 
+        id,
+        room_id AS "roomId",
+        file_name AS "fileName",
+        content,
+        uploaded_by AS "uploadedBy",
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+      FROM room_files 
+      WHERE id = $1;
+    `,
+    [fileId],
+  );
+
+  return query.rows[0];
+}
+
 export default {
   uploadFile,
+  getSpecificFile,
 };

@@ -3,12 +3,25 @@ import roomService from "../rooms/rooms.service.js";
 import filesRepository from "./files.repository.js";
 import AppError from "../../shared/errors/error.js";
 import errorCodes from "../../shared/errors/errorCodes.js";
+import memberService from "../member/member.service.js";
 
-async function getSpecificFile(
-  userId: string,
-  roomId: string,
-  fileId: string,
-) {}
+async function getSpecificFile(userId: string, roomId: string, fileId: string) {
+  await roomService.requireRoom(roomId);
+
+  await memberService.requireMembership(roomId, userId);
+
+  const file: File | undefined = await filesRepository.getSpecificFile(fileId);
+
+  if (!file) {
+    throw new AppError(
+      404,
+      "Requested file not found.",
+      errorCodes.FILE_NOT_FOUND,
+    );
+  }
+
+  return file;
+}
 
 async function uploadFile(
   userId: string,
@@ -48,4 +61,5 @@ async function uploadFile(
 
 export default {
   uploadFile,
+  getSpecificFile,
 };

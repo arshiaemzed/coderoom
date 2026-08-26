@@ -4,6 +4,18 @@ import memberRepository from "./member.repository.js";
 import roomsService from "../rooms/rooms.service.js";
 import type { DatabaseRoomMember } from "./member.type.js";
 
+async function requireMembership(roomId: string, userId: string) {
+  const member = await memberRepository.checkMembership(roomId, userId);
+
+  if (!member) {
+    throw new AppError(
+      403,
+      "You are not member of this room.",
+      errorCodes.NOT_MEMBER_OF_ROOM,
+    );
+  }
+}
+
 async function requireTargetMembership(roomId: string, targetId: string) {
   const member = await memberRepository.checkMembership(roomId, targetId);
 
@@ -32,4 +44,5 @@ async function kickMember(roomId: string, userId: string, targetId: string) {
 
 export default {
   kickMember,
+  requireMembership,
 };
