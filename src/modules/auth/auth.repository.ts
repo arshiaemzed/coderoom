@@ -66,8 +66,8 @@ async function findUser(email: string): Promise<UserPasswordInfo | undefined> {
 async function createAuthSession(
   tokenHash: string,
   userId: string,
-): Promise<AuthSession> {
-  const query = await db.query<AuthSession>(
+): Promise<AuthSession | undefined> {
+  const query = await db.query(
     `
     WITH created_session AS (
       INSERT INTO user_sessions 
@@ -94,11 +94,7 @@ async function createAuthSession(
     [tokenHash, userId],
   );
 
-  const result = query.rows[0];
-
-  if (!result) {
-    throw new Error("Failed to create session.");
-  }
+  const result: AuthSession | undefined = query.rows[0];
 
   return result;
 }

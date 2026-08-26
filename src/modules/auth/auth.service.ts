@@ -59,6 +59,14 @@ async function login(email: string, password: string) {
     user.id,
   );
 
+  if (!createdSession) {
+    throw new AppError(
+      500,
+      "Failed to create session.",
+      errorCodes.FAILED_TO_CREATE_AUTH_SESSION,
+    );
+  }
+
   return {
     id: createdSession.userId,
     displayName: createdSession.displayName,
