@@ -4,12 +4,15 @@ import AppError from "../../shared/errors/error.js";
 import errorCodes from "../../shared/errors/errorCodes.js";
 import inviteRepository from "../invite/invite.repository.js";
 
-async function requireRoom(roomId: string) {
-  const room = await roomsRepository.doesRoomExists(roomId);
+async function requireRoom(roomId: string): Promise<DatabaseRoom | undefined> {
+  const room: DatabaseRoom | undefined =
+    await roomsRepository.doesRoomExists(roomId);
 
   if (!room) {
     throw new AppError(404, "Room not found.", errorCodes.ROOM_DOES_NOT_EXISTS);
   }
+
+  return room;
 }
 
 async function requireOwnerPermission(roomId: string, userId: string) {

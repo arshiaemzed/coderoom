@@ -19,6 +19,19 @@ async function uploadFile(req: Request, res: Response) {
   return res.status(200).json(uploadedFile);
 }
 
+async function getSpecificFile(req: Request, res: Response) {
+  const roomId = req.params.roomid as string;
+
+  const fileId = req.params.fileid as string;
+
+  const userId = req.user.userId;
+
+  const file = await fileService.getSpecificFile(userId, roomId, fileId);
+
+  return res.status(200).json(file);
+}
+
 export default {
   uploadFile,
+  getSpecificFile,
 };

@@ -90,7 +90,6 @@ async function getUserRooms(userId: string) {
       created_at AS "createdAt"
     FROM rooms
     `,
-    [userId],
   );
   return query.rows;
 }

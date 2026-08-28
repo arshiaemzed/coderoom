@@ -1,10 +1,81 @@
-import { userInfo } from "node:os";
 import connectionManager from "./connection-manager.js";
 import WebSocketError from "./websocket.error.js";
 import type { Client, Cursor, Message, Room } from "./websocket.types.js";
 import { WebSocket } from "ws";
+import type { DatabaseRoom } from "../../modules/rooms/rooms.type.js";
 
 let rooms: Array<Room> = [];
+
+function join(
+  client: WebSocket,
+  user: Client,
+  databaseRoom: DatabaseRoom,
+): Room {
+  const localRoom: Room | undefined = findRoomById(databaseRoom.id);
+
+  if (!localRoom) {
+    const newRoom = {
+      id: databaseRoom.id,
+      name: databaseRoom.name,
+      members: new Map<WebSocket, Client>(),
+      cursors: new Map<WebSocket, Cursor>(),
+      messages: new Array<Message>(),
+      owner: databaseRoom.userId,
+    };
+
+    addNewRoom(newRoom);
+
+    addMember(client, newRoom.id, {
+      userId: user.userId,
+      displayName: user.displayName,
+    });
+
+    addCursor(client, newRoom.id, {
+      userId: user.userId,
+      dx: 0,
+      dy: 0,
+      displayName: user.displayName,
+    });
+
+    return newRoom;
+  }
+
+  if (isMember(client, localRoom.id)) {
+    throw new WebSocketError(
+      "USER_ALREADY_JOINED_IN_ROOM",
+      "You are already joined  this room.",
+    );
+  }
+
+  addMember(client, localRoom.id, {
+    userId: user.userId,
+    displayName: user.displayName,
+  });
+
+  addCursor(client, localRoom.id, {
+    userId: user.userId,
+    dx: 0,
+    dy: 0,
+    displayName: user.displayName,
+  });
+
+  return localRoom;
+}
+
+function leave(client: WebSocket, user: Client, databaseRoom: DatabaseRoom) {
+  const localRoom: Room | undefined = findRoomById(databaseRoom.id);
+
+  if (!localRoom) {
+    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+  }
+
+  requireRoomMember(client, localRoom.id);
+
+  removeMember(client, localRoom.id);
+  removeCursor(client, localRoom.id);
+
+  return localRoom;
+}
 
 function addNewRoom(room: Room) {
   rooms.push(room);
@@ -167,4 +238,6 @@ export default {
   requireRoomMember,
   addMessage,
   updateCursor,
+  join,
+  leave,
 };

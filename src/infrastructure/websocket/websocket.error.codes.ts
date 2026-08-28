@@ -4,6 +4,8 @@ type codes = {
   ROOM_NOT_FOUND: string;
   USER_NOT_AUTHENTICATED: string;
   CURSOR_NOT_FOUND: string;
+  ROOM_DOES_NOT_EXISTS: string;
+  USER_NOT_MEMBER_OF_ROOM: string;
 };
 
 type WebSocketErrorCode = keyof codes;
