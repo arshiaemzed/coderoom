@@ -6,6 +6,7 @@ type codes = {
   CURSOR_NOT_FOUND: string;
   ROOM_DOES_NOT_EXISTS: string;
   USER_NOT_MEMBER_OF_ROOM: string;
+  INVALID_AUTH_SESSION: "INVALID_AUTH_SESSION";
 };
 
 type WebSocketErrorCode = keyof codes;

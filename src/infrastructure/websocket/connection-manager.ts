@@ -13,19 +13,22 @@ function remove(socket: WebSocket): void {
 }
 
 function get(socket: WebSocket): Client | undefined {
-  const user = clients.get(socket);
+  const user: Client | undefined = clients.get(socket);
 
   return user;
 }
 
-function checkAuth(socket: WebSocket) {
-  const user = get(socket);
+function checkAuth(socket: WebSocket): Client {
+  const user: Client | undefined = get(socket);
+
   if (!user) {
     throw new WebSocketError(
       "USER_NOT_AUTHENTICATED",
-      "You are not authenticated.",
+      "Specified user is not authenticated.",
     );
   }
+
+  return user;
 }
 
 function getAll(): Map<WebSocket, Client> {

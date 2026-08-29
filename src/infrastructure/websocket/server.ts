@@ -7,6 +7,8 @@ import WebSocketError from "./websocket.error.js";
 const server = new WebSocketServer({ port: 3002 });
 
 server.on("connection", (socket: WebSocket) => {
+  console.log("client connected");
+
   socket.on("message", async (e) => {
     try {
       await eventRouter(socket, e);

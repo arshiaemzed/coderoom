@@ -1,4 +1,3 @@
-import connectionManager from "./connection-manager.js";
 import WebSocketError from "./websocket.error.js";
 import type { Client, Cursor, Message, Room } from "./websocket.types.js";
 import { WebSocket } from "ws";
@@ -103,12 +102,11 @@ function addCursor(socket: WebSocket, roomId: string, cursor: Cursor): void {
 
 function updateCursor(
   socket: WebSocket,
+  user: Client,
   roomId: string,
   dx: number,
   dy: number,
-): void {
-  const user = connectionManager.get(socket);
-
+) {
   if (!user) {
     throw new WebSocketError(
       "USER_NOT_AUTHENTICATED",
@@ -138,11 +136,7 @@ function updateCursor(
     dy: cursor.dy,
   };
 
-  room.members.forEach((client, socket) => {
-    socket.send(
-      JSON.stringify({ code: "cursor_updated", cursor: newCursorData }),
-    );
-  });
+  return { room: room, cursor: newCursorData };
 }
 function removeCursor(socket: WebSocket, roomId: string): void {
   const room: Room | undefined = findRoomById(roomId);
@@ -154,7 +148,7 @@ function removeCursor(socket: WebSocket, roomId: string): void {
   room.cursors.delete(socket);
 }
 
-function addMessage(socket: WebSocket, roomId: string, message: Message): void {
+function addMessage(socket: WebSocket, roomId: string, message: Message) {
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
@@ -163,9 +157,7 @@ function addMessage(socket: WebSocket, roomId: string, message: Message): void {
 
   room.messages.push(message);
 
-  room.members.forEach((client, socket) => {
-    socket.send(JSON.stringify({ code: "new_message", message: message }));
-  });
+  return { room: room, message: message };
 }
 
 function removeMember(socket: WebSocket, roomId: string): void {
@@ -209,7 +201,7 @@ function requireRoomMember(socket: WebSocket, roomId: string) {
     throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
   }
 
-  const user = room.members.get(socket);
+  const user: Client | undefined = room.members.get(socket);
 
   if (!user) {
     throw new WebSocketError(
@@ -221,20 +213,10 @@ function requireRoomMember(socket: WebSocket, roomId: string) {
   return { room: room, member: user };
 }
 
-function getAll(): Array<Room> {
-  return rooms;
-}
-
 export default {
-  getAll,
-  isMember,
   addMember,
   findRoomBySocket,
-  findRoomById,
   removeMember,
-  addNewRoom,
-  addCursor,
-  removeCursor,
   requireRoomMember,
   addMessage,
   updateCursor,

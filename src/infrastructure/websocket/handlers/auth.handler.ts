@@ -1,7 +1,7 @@
-import crypto from "crypto";
-import authRepository from "../../../modules/auth/auth.repository.js";
+import type { AuthSession } from "../../../modules/auth/auth.types.js";
 import connectionManager from "../connection-manager.js";
 import { WebSocket } from "ws";
+import authService from "../services/auth.service.js";
 
 async function auth(client: WebSocket, token: string) {
   if (connectionManager.get(client)) {
@@ -16,17 +16,9 @@ async function auth(client: WebSocket, token: string) {
 
   const clients = connectionManager.getAll();
 
-  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const authSession: AuthSession = await authService.auth(token);
 
-  const valid = await authRepository.findSessionByTokenHash(tokenHash);
-
-  if (!valid) {
-    client.send(JSON.stringify({ type: "message", message: "Invalid token." }));
-    client.close();
-    return;
-  }
-
-  if (clients.values().find((e) => e.userId == valid.userId)) {
+  if (clients.values().find((e) => e.userId == authSession.userId)) {
     client.send(
       JSON.stringify({
         type: "message",
@@ -37,8 +29,14 @@ async function auth(client: WebSocket, token: string) {
     return;
   }
 
-  clients.set(client, { userId: valid.userId, displayName: valid.displayName });
-  client.send(JSON.stringify({ type: "login_success", userId: valid.userId }));
+  connectionManager.add(client, {
+    userId: authSession.userId,
+    displayName: authSession.displayName,
+  });
+
+  client.send(
+    JSON.stringify({ type: "login_success", userId: authSession.userId }),
+  );
 }
 
 export default {

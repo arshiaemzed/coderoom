@@ -5,9 +5,21 @@ import { WebSocket } from "ws";
 function moveCursor(client: WebSocket, roomId: string, dx: number, dy: number) {
   connectionManager.checkAuth(client);
 
-  roomManager.requireRoomMember(client, roomId);
+  const roomMember = roomManager.requireRoomMember(client, roomId);
 
-  roomManager.updateCursor(client, roomId, dx, dy);
+  const data = roomManager.updateCursor(
+    client,
+    roomMember.member,
+    roomId,
+    dx,
+    dy,
+  );
+
+  data.room.members.forEach((client, socket) => {
+    socket.send(
+      JSON.stringify({ code: "cursor_updated", cursor: data.cursor }),
+    );
+  });
 }
 
 export default {

@@ -8,17 +8,7 @@ import type { DatabaseRoom } from "../../../modules/rooms/rooms.type.js";
 import leaveRoomService from "../services/leave.room.service.js";
 
 async function checkRoomAndJoin(client: WebSocket, roomId: string) {
-  connectionManager.checkAuth(client);
-
-  const user: Client | undefined = connectionManager.get(client);
-
-  if (!user) {
-    client.close();
-    throw new WebSocketError(
-      "USER_NOT_AUTHENTICATED",
-      "You are not authenticated.",
-    );
-  }
+  const user: Client = connectionManager.checkAuth(client);
 
   const databaseRoom: DatabaseRoom = await joinRoomService.joinRoom(
     roomId,
@@ -50,17 +40,7 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
 }
 
 async function checkRoomAndLeave(client: WebSocket, roomId: string) {
-  connectionManager.checkAuth(client);
-
-  const user: Client | undefined = connectionManager.get(client);
-
-  if (!user) {
-    client.close();
-    throw new WebSocketError(
-      "USER_NOT_AUTHENTICATED",
-      "You are not authenticated.",
-    );
-  }
+  const user: Client = connectionManager.checkAuth(client);
 
   const databaseRoom: DatabaseRoom = await leaveRoomService.leaveRoom(
     roomId,
