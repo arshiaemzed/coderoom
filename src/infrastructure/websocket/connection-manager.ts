@@ -48,4 +48,5 @@ export default {
   get,
   getAll,
   checkAuth,
+  findById,
 };

@@ -5,17 +5,17 @@ import type { DatabaseRoom } from "../../modules/rooms/rooms.type.js";
 
 let rooms: Array<Room> = [];
 
-function join(client: WebSocket, user: Client, data: any): Room {
-  const localRoom: Room | undefined = findRoomById(data.room.id);
+function join(client: WebSocket, user: Client, data: DatabaseRoom): Room {
+  const localRoom: Room | undefined = findRoomById(data.id);
 
   if (!localRoom) {
     const newRoom = {
-      id: data.room.id,
-      name: data.room.name,
+      id: data.id,
+      name: data.name,
       members: new Map<WebSocket, Client>(),
       cursors: new Map<WebSocket, Cursor>(),
       messages: new Array<Message>(),
-      owner: data.room.userId,
+      owner: data.userId,
     };
 
     addNewRoom(newRoom);

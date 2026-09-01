@@ -27,8 +27,6 @@ async function joinRoom(roomId: string, userId: string): Promise<DatabaseRoom> {
     );
   }
 
-  const files: Array<RoomFile> = await filesRepository.getRoomFiles(roomId);
-
   return databaseRoom;
 }
 
