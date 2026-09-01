@@ -18,6 +18,13 @@ function get(socket: WebSocket): Client | undefined {
   return user;
 }
 
+function findById(userId: string): Client | undefined {
+  const values: MapIterator<Client> = clients.values();
+  const user: Client | undefined = values.find((e) => e.userId === userId);
+
+  return user;
+}
+
 function checkAuth(socket: WebSocket): Client {
   const user: Client | undefined = get(socket);
 

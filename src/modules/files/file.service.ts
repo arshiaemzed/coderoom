@@ -4,6 +4,9 @@ import filesRepository from "./files.repository.js";
 import AppError from "../../shared/errors/error.js";
 import errorCodes from "../../shared/errors/errorCodes.js";
 import memberService from "../member/member.service.js";
+import roomNotifier from "../../infrastructure/websocket/room.notifier.js";
+import roomManager from "../../infrastructure/websocket/room-manager.js";
+import fileManager from "../../infrastructure/websocket/file-manager.js";
 
 async function getSpecificFile(userId: string, roomId: string, fileId: string) {
   await roomService.requireRoom(roomId);
@@ -55,6 +58,15 @@ async function uploadFile(
       errorCodes.UPLOAD_FILE_FAILED,
     );
   }
+
+  fileManager.addFile(
+    uploadedFile.id,
+    uploadedFile.roomId,
+    uploadedFile.fileName,
+    uploadedFile.content,
+  );
+
+  roomNotifier.notifyFileUpload(uploadedFile);
 
   return uploadedFile;
 }

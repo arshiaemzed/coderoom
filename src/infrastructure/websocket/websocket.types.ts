@@ -35,6 +35,13 @@ interface Room {
   messages: Array<Message>;
 }
 
+interface File {
+  id: string;
+  roomId: string;
+  name: string;
+  content: string;
+}
+
 interface Cursor {
   userId: string;
   displayName: string;
@@ -48,4 +55,4 @@ interface Message {
   message: string;
 }
 
-export type { Event, AuthEvent, Client, Room, Cursor, Message };
+export type { Event, AuthEvent, Client, Room, Cursor, Message, File };

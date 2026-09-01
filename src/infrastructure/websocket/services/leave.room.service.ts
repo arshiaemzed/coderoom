@@ -11,7 +11,10 @@ async function leaveRoom(roomId: string, userId: string) {
     throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
   }
 
-  const member = await memberRepository.checkMembership(roomId, userId);
+  const member: boolean = await memberRepository.checkMembership(
+    roomId,
+    userId,
+  );
 
   if (!member) {
     throw new WebSocketError(

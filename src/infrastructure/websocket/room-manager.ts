@@ -138,6 +138,7 @@ function updateCursor(
 
   return { room: room, cursor: newCursorData };
 }
+
 function removeCursor(socket: WebSocket, roomId: string): void {
   const room: Room | undefined = findRoomById(roomId);
 
@@ -216,6 +217,7 @@ function requireRoomMember(socket: WebSocket, roomId: string) {
 export default {
   addMember,
   findRoomBySocket,
+  findRoomById,
   removeMember,
   requireRoomMember,
   addMessage,
