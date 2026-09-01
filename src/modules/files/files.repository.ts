@@ -48,7 +48,29 @@ async function getSpecificFile(fileId: string): Promise<File | undefined> {
   return query.rows[0];
 }
 
+async function getRoomFiles(roomId: string): Promise<Array<RoomFile>> {
+  const query = await db.query(
+    `
+    SELECT 
+      id,
+      room_id AS "roomId",
+      file_name AS "fileName",
+      content,
+      uploaded_by AS "uploadedBy",
+      created_at AS "createdAt",
+      updated_at AS "updatedAt" 
+      FROM room_files 
+    WHERE 
+      room_id = $1;    
+    `,
+    [roomId],
+  );
+
+  return query.rows;
+}
+
 export default {
   uploadFile,
   getSpecificFile,
+  getRoomFiles,
 };

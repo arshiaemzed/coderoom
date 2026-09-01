@@ -1,4 +1,5 @@
 import WebSocket from "ws";
+import type { DatabaseRoom, RoomFile } from "../../modules/rooms/rooms.type.js";
 type eventType =
   | "join_room"
   | "leave_room"
@@ -49,10 +50,15 @@ interface Cursor {
   dy: number;
 }
 
+interface RoomData {
+  room: DatabaseRoom;
+  files: Array<RoomFile>;
+}
+
 interface Message {
   userId: string;
   displayName: string;
   message: string;
 }
 
-export type { Event, AuthEvent, Client, Room, Cursor, Message, File };
+export type { Event, AuthEvent, Client, Room, Cursor, Message, File, RoomData };

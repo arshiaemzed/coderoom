@@ -20,4 +20,10 @@ filesRouter.get(
   fileController.getSpecificFile,
 );
 
+filesRouter.get(
+  "/rooms/:roomid/files",
+  authMiddleware,
+  fileController.getRoomFiles,
+);
+
 export default filesRouter;

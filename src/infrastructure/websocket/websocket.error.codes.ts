@@ -8,6 +8,7 @@ type codes = {
   USER_NOT_MEMBER_OF_ROOM: string;
   INVALID_AUTH_SESSION: string;
   FAILED_TO_UPLOAD_FILE: string;
+  FILE_ALREADY_EXISTS: string;
 };
 
 type WebSocketErrorCode = keyof codes;

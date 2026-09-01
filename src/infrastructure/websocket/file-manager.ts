@@ -1,3 +1,5 @@
+import type { RoomFile } from "../../modules/rooms/rooms.type.js";
+import WebSocketError from "./websocket.error.js";
 import type { File } from "./websocket.types.js";
 
 let files: Array<File> = [];
@@ -8,6 +10,12 @@ function addFile(
   fileName: string,
   fileContent: string,
 ): File {
+  const file: File | undefined = files.find((e) => e.id === id);
+
+  if (file) {
+    throw new WebSocketError("FILE_ALREADY_EXISTS", "File already exists");
+  }
+
   files.push({ id: id, roomId: roomId, name: fileName, content: fileContent });
 
   return { id: id, roomId: roomId, name: fileName, content: fileContent };

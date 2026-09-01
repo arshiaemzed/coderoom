@@ -71,7 +71,17 @@ async function uploadFile(
   return uploadedFile;
 }
 
+async function getRoomFiles(roomId: string, userId: string) {
+  await roomService.requireRoom(roomId);
+
+  await memberService.requireMembership(roomId, userId);
+
+  const files = await filesRepository.getRoomFiles(roomId);
+
+  return files;
+}
 export default {
   uploadFile,
   getSpecificFile,
+  getRoomFiles,
 };

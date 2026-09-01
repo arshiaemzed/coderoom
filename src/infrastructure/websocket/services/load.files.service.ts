@@ -7,7 +7,10 @@ import type {
 } from "../../../modules/rooms/rooms.type.js";
 import WebSocketError from "../websocket.error.js";
 
-async function joinRoom(roomId: string, userId: string): Promise<DatabaseRoom> {
+async function loadFiles(
+  roomId: string,
+  userId: string,
+): Promise<Array<RoomFile>> {
   const databaseRoom: DatabaseRoom | undefined =
     await roomsRepository.doesRoomExists(roomId);
 
@@ -29,9 +32,9 @@ async function joinRoom(roomId: string, userId: string): Promise<DatabaseRoom> {
 
   const files: Array<RoomFile> = await filesRepository.getRoomFiles(roomId);
 
-  return databaseRoom;
+  return files;
 }
 
 export default {
-  joinRoom,
+  loadFiles,
 };
