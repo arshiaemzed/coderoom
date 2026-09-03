@@ -9,11 +9,11 @@ function addFile(
   roomId: string,
   fileName: string,
   fileContent: string,
-): File {
+): File | undefined {
   const file: File | undefined = files.find((e) => e.id === id);
 
   if (file) {
-    throw new WebSocketError("FILE_ALREADY_EXISTS", "File already exists");
+    return;
   }
 
   files.push({ id: id, roomId: roomId, name: fileName, content: fileContent });

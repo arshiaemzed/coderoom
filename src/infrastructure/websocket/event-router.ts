@@ -5,6 +5,7 @@ import roomHandler from "./handlers/room.handler.js";
 import { type Event } from "./websocket.types.js";
 import messageHandler from "./handlers/message.handler.js";
 import cursorHandler from "./handlers/cursor.handler.js";
+import fileHandler from "./handlers/file.handler.js";
 
 async function eventRouter(socket: WebSocket, data: any) {
   const event = JSON.parse(data.toString());
@@ -22,6 +23,7 @@ async function eventRouter(socket: WebSocket, data: any) {
       case "join_room":
         console.log("join room event");
         await roomHandler.checkRoomAndJoin(socket, userEvent.room);
+        await fileHandler.loadFiles(socket, userEvent.room);
         break;
       case "leave_room":
         console.log("leave room event");
