@@ -18,7 +18,9 @@ async function auth(client: WebSocket, token: string) {
 
   const authSession: AuthSession = await authService.auth(token);
 
-  if (clients.values().find((e) => e.userId == authSession.userId)) {
+  const user = clients.values().find((e) => e.userId == authSession.userId);
+
+  if (user) {
     client.send(
       JSON.stringify({
         type: "message",

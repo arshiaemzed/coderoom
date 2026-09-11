@@ -4,6 +4,7 @@ import fileManager from "../file-manager.js";
 import roomManager from "../room-manager.js";
 import loadFilesService from "../services/load.files.service.js";
 import type { WebSocket } from "ws";
+import type { Insert } from "../websocket.types.js";
 
 async function loadFiles(client: WebSocket, roomId: string) {
   connectionManager.checkAuth(client);
@@ -27,6 +28,30 @@ async function loadFiles(client: WebSocket, roomId: string) {
   client.send(JSON.stringify(message));
 }
 
+async function applyOperation(
+  client: WebSocket,
+  roomId: string,
+  operation: Insert,
+) {
+  connectionManager.checkAuth(client);
+
+  roomManager.requireRoomMember(client, roomId);
+
+  const data = fileManager.insertOperation(operation);
+
+  const message = {
+    type: "insert_operation",
+    fileId: operation.fileId,
+    position: operation.position,
+    inserted: operation.inserted,
+  };
+
+  data?.members.forEach((client, socket) => {
+    socket.send(JSON.stringify(message));
+  });
+}
+
 export default {
   loadFiles,
+  applyOperation,
 };

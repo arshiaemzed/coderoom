@@ -29,6 +29,16 @@ async function eventRouter(socket: WebSocket, data: any) {
         console.log("leave room event");
         await roomHandler.checkRoomAndLeave(socket, userEvent.room);
         break;
+      case "insert_operation":
+        if (!userEvent.insert) {
+          break;
+        }
+
+        await fileHandler.applyOperation(
+          socket,
+          userEvent.room,
+          userEvent.insert,
+        );
       case "send_message":
         messageHandler.sendMessage(
           socket,

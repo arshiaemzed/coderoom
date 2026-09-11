@@ -5,6 +5,7 @@ type eventType =
   | "leave_room"
   | "send_message"
   | "move_cursor"
+  | "insert_operation"
   | "upload_file";
 
 type authEventType = "login";
@@ -15,6 +16,7 @@ interface Event {
   message?: string;
   dx?: number;
   dy?: number;
+  insert?: Insert;
 }
 
 interface AuthEvent {
@@ -56,4 +58,10 @@ interface Message {
   message: string;
 }
 
-export type { Event, AuthEvent, Client, Room, Cursor, Message, File };
+interface Insert {
+  fileId: string;
+  position: number;
+  inserted: string;
+}
+
+export type { Insert, Event, AuthEvent, Client, Room, Cursor, Message, File };
