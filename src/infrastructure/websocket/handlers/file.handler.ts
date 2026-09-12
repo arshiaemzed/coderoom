@@ -4,7 +4,7 @@ import fileManager from "../file-manager.js";
 import roomManager from "../room-manager.js";
 import loadFilesService from "../services/load.files.service.js";
 import type { WebSocket } from "ws";
-import type { Insert } from "../websocket.types.js";
+import type { Delete, Insert } from "../websocket.types.js";
 
 async function loadFiles(client: WebSocket, roomId: string) {
   connectionManager.checkAuth(client);
@@ -28,11 +28,26 @@ async function loadFiles(client: WebSocket, roomId: string) {
   client.send(JSON.stringify(message));
 }
 
-async function applyOperation(
-  client: WebSocket,
-  roomId: string,
-  operation: Insert,
-) {
+async function deleteOp(client: WebSocket, roomId: string, operation: Delete) {
+  connectionManager.checkAuth(client);
+
+  roomManager.requireRoomMember(client, roomId);
+
+  const data = fileManager.deleteOperation(operation);
+
+  const message = {
+    type: "delete_operation",
+    fileId: operation.fileId,
+    position: operation.position,
+  };
+
+  data?.members.forEach((client, socket) => {
+    console.log("send delete mssage to all sockets in the room");
+    socket.send(JSON.stringify(message));
+  });
+}
+
+async function insertOp(client: WebSocket, roomId: string, operation: Insert) {
   connectionManager.checkAuth(client);
 
   roomManager.requireRoomMember(client, roomId);
@@ -47,11 +62,13 @@ async function applyOperation(
   };
 
   data?.members.forEach((client, socket) => {
+    console.log("send insert mssage to all sockets in the room");
     socket.send(JSON.stringify(message));
   });
 }
 
 export default {
   loadFiles,
-  applyOperation,
+  insertOp,
+  deleteOp,
 };

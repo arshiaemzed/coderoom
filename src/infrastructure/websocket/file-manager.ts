@@ -1,5 +1,5 @@
 import roomManager from "./room-manager.js";
-import type { File, Insert } from "./websocket.types.js";
+import type { Delete, File, Insert } from "./websocket.types.js";
 
 let files: Array<File> = [];
 
@@ -20,6 +20,31 @@ function addFile(
   return { id: id, roomId: roomId, name: fileName, content: fileContent };
 }
 
+function deleteOperation(operation: Delete) {
+  const file = files.find((e) => e.id === operation.fileId);
+
+  if (!file) {
+    return;
+  }
+
+  const room = roomManager.findRoomById(file.roomId);
+
+  const fileContentArray = file.content.split("");
+
+  console.log(operation.position);
+
+  fileContentArray.splice(operation.position, 1);
+
+  let updatedFileContent: string = fileContentArray.join("");
+  file.content = updatedFileContent;
+
+  console.log(fileContentArray);
+
+  console.log(updatedFileContent);
+
+  return room;
+}
+
 function insertOperation(operation: Insert) {
   const file = files.find((e) => e.id === operation.fileId);
 
@@ -31,7 +56,14 @@ function insertOperation(operation: Insert) {
 
   const fileContentArray = file.content.split("");
 
+  console.log(operation.position);
   fileContentArray.splice(operation.position, 0, operation.inserted);
+  let updatedFileContent: string = fileContentArray.join("");
+  file.content = updatedFileContent;
+
+  console.log(fileContentArray);
+
+  console.log(updatedFileContent);
 
   return room;
 }
@@ -39,4 +71,5 @@ function insertOperation(operation: Insert) {
 export default {
   addFile,
   insertOperation,
+  deleteOperation,
 };

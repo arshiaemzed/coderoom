@@ -34,11 +34,19 @@ async function eventRouter(socket: WebSocket, data: any) {
           break;
         }
 
-        await fileHandler.applyOperation(
-          socket,
-          userEvent.room,
-          userEvent.insert,
-        );
+        await fileHandler.insertOp(socket, userEvent.room, userEvent.insert);
+        break;
+
+      case "delete_operation":
+        if (!userEvent.delete) {
+          return;
+        }
+
+        console.log("delete hahah");
+        await fileHandler.deleteOp(socket, userEvent.room, userEvent.delete!);
+
+        break;
+
       case "send_message":
         messageHandler.sendMessage(
           socket,
