@@ -1,0 +1,30 @@
+.login-screen {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.login {
+  width: 200px;
+  height: 100px;
+  display: grid;
+  align-items: center;
+}
+
+.login-email-div {
+  padding: 16px;
+}
+
+.login-password-div {
+  padding: 16px;
+}
+
+.button-div {
+  display: flex;
+  justify-content: center;
+}
+
+.login-text-div {
+  text-align: center;
+}
