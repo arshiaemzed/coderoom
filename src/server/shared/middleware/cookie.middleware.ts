@@ -1,5 +1,4 @@
 import { type Request, type Response, type NextFunction } from "express";
-import AppError from "../errors/error.js";
 
 function cookieMiddleware(req: Request, res: Response, next: NextFunction) {
   const sessionToken = req.cookies.session;
