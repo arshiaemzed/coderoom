@@ -3,6 +3,7 @@ import AppError from "../../shared/errors/error.js";
 import argon2 from "argon2";
 import errorCodes from "../../shared/errors/errorCodes.js";
 import crypto from "crypto";
+import type { AuthSession } from "./auth.types.js";
 
 async function signUp(email: string, password: string, displayName: string) {
   const userExists: boolean = await authRepository.userExists(email);
@@ -39,6 +40,8 @@ async function login(email: string, password: string) {
 
   const passwordMatch: boolean = await argon2.verify(user.password, password);
 
+  console.log(`Password match : ${passwordMatch}`);
+
   if (!passwordMatch) {
     throw new AppError(
       401,
@@ -74,7 +77,28 @@ async function login(email: string, password: string) {
   };
 }
 
+async function authMe(token: string) {
+  const tokenHash: string = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  const isValid: AuthSession | undefined =
+    await authRepository.validateSession(tokenHash);
+
+  if (!isValid) {
+    throw new AppError(
+      401,
+      "Unauthorized.",
+      errorCodes.INVALID_COOKIE_BASED_TOKEN,
+    );
+  }
+
+  return isValid;
+}
+
 export default {
   login,
   signUp,
+  authMe,
 };

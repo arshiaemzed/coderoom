@@ -1,7 +1,6 @@
 import { type Response, type Request, type NextFunction } from "express";
 import AppError from "../errors/error.js";
 import errorCodes from "../errors/errorCodes.js";
-import argon2 from "argon2";
 import authRepository from "../../modules/auth/auth.repository.js";
 import crypto from "crypto";
 import type { AuthSession } from "../../modules/auth/auth.types.js";
