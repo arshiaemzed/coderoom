@@ -1,25 +1,37 @@
 import LoginScreen from "./pages/Login";
-import { Route, Routes } from "react-router";
+import { Navigate, Route, Routes } from "react-router";
 import Rooms from "./pages/Rooms";
-import { useState } from "react";
+import { useAuth } from "./auth/AuthContext";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { status } = useAuth();
+
+  if (status === "loading") {
+    return <p>Loading ...</p>;
+  }
 
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
       <Route
         path="/login"
-        element={<LoginScreen setIsAuthenticated={setIsAuthenticated} />}
+        element={
+          status === "authenticated" ? (
+            <Navigate to="/rooms" replace />
+          ) : (
+            <LoginScreen />
+          )
+        }
       />
 
       <Route
         path="/rooms"
         element={
-          isAuthenticated ? (
-            <Rooms />
+          status === "unauthenticated" ? (
+            <Navigate to="/login" replace />
           ) : (
-            <LoginScreen setIsAuthenticated={setIsAuthenticated} />
+            <Rooms />
           )
         }
       />

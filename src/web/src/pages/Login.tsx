@@ -1,14 +1,11 @@
 import { useState } from "react";
-import login from "../api/auth";
 import "./login.css";
 import { useNavigate } from "react-router";
+import { requsetLogin } from "../api/auth";
+import { useAuth } from "../auth/AuthContext";
 
 type LoginButtonProps = {
   isLoading: boolean;
-};
-
-type LoginScreenProps = {
-  setIsAuthenticated: (value: boolean) => void;
 };
 
 type EmailInputProps = {
@@ -25,12 +22,14 @@ type PasswordInputProps = {
   ) => void;
 };
 
-function LoginScreen({ setIsAuthenticated }: LoginScreenProps) {
+function LoginScreen() {
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
 
   const [isLoading, setLoading] = useState(false);
+
+  const { login } = useAuth();
 
   const navigate = useNavigate();
 
@@ -39,14 +38,14 @@ function LoginScreen({ setIsAuthenticated }: LoginScreenProps) {
 
     try {
       setLoading(true);
-      const session = await login(email, password);
-      console.log(session);
-      setIsAuthenticated(true);
-      setLoading(false);
+
+      await login(email, password);
 
       navigate("/rooms");
     } catch (error) {
       console.log(`error catched: ${error}`);
+    } finally {
+      setLoading(false);
     }
   }
 

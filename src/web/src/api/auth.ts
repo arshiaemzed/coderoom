@@ -1,4 +1,6 @@
-async function login(email: string, password: string) {
+import type { User } from "../auth/types";
+
+export async function requsetLogin(email: string, password: string) {
   const response = await fetch("http://localhost:3001/auth/login", {
     method: "POST",
     credentials: "include",
@@ -20,4 +22,15 @@ async function login(email: string, password: string) {
   return data;
 }
 
-export default login;
+export async function getCurrentUser(): Promise<User | null> {
+  const response = await fetch(`http://localhost:3001/auth/me`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+  const data: User = await response.json();
+
+  return data;
+}
