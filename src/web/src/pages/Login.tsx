@@ -3,10 +3,34 @@ import login from "../api/auth";
 import "./login.css";
 import { useNavigate } from "react-router";
 
-function LoginScreen() {
+type LoginButtonProps = {
+  isLoading: boolean;
+};
+
+type LoginScreenProps = {
+  setIsAuthenticated: (value: boolean) => void;
+};
+
+type EmailInputProps = {
+  email: string;
+  onChange: (
+    event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
+  ) => void;
+};
+
+type PasswordInputProps = {
+  password: string;
+  onChange: (
+    event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
+  ) => void;
+};
+
+function LoginScreen({ setIsAuthenticated }: LoginScreenProps) {
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
+
+  const [isLoading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -14,8 +38,11 @@ function LoginScreen() {
     event.preventDefault();
 
     try {
+      setLoading(true);
       const session = await login(email, password);
       console.log(session);
+      setIsAuthenticated(true);
+      setLoading(false);
 
       navigate("/rooms");
     } catch (error) {
@@ -28,29 +55,61 @@ function LoginScreen() {
       <form className="login" onSubmit={handleSubmit}>
         <div>
           <div className="login-text-div">
-            <p>Login</p>
+            <p>Please login to your account</p>
           </div>
-          <div className="login-email-div">
-            <input
-              type="email"
-              value={email}
+          <div className="login-inputs-div">
+            <EmailInput
+              email={email}
               onChange={(event) => setEmail(event.target.value)}
-            ></input>
-          </div>
+            />
 
-          <div className="login-password-div">
-            <input
-              type="password"
-              value={password}
+            <PasswordInput
+              password={password}
               onChange={(event) => setPassword(event.target.value)}
-            ></input>
-          </div>
+            />
 
-          <div className="button-div">
-            <button>Login</button>
+            <LoginButton isLoading={isLoading} />
           </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+function EmailInput({ email, onChange }: EmailInputProps) {
+  return (
+    <div className="login-email-div">
+      <input
+        className="login-email-input"
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={onChange}
+      ></input>
+    </div>
+  );
+}
+
+function PasswordInput({ password, onChange }: PasswordInputProps) {
+  return (
+    <div className="login-password-div">
+      <input
+        className="login-password-input"
+        placeholder="Password"
+        type="password"
+        value={password}
+        onChange={onChange}
+      ></input>
+    </div>
+  );
+}
+
+function LoginButton({ isLoading }: LoginButtonProps) {
+  return (
+    <div className="button-div">
+      <button className="login-btn">
+        {isLoading ? "Logging In ..." : "Login"}
+      </button>
     </div>
   );
 }
