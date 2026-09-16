@@ -1,6 +1,6 @@
 interface User {
-  id: string;
-  email: string;
+  user_id: string;
+  display_name: string;
 }
 
 interface UserPasswordInfo {

@@ -83,8 +83,7 @@ async function authMe(token: string) {
     .update(token)
     .digest("hex");
 
-  const isValid: AuthSession | undefined =
-    await authRepository.validateSession(tokenHash);
+  const isValid = await authRepository.validateSession(tokenHash);
 
   if (!isValid) {
     throw new AppError(

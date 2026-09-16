@@ -15,7 +15,7 @@ async function signUp(
   try {
     await client.query("BEGIN");
 
-    const query = await client.query<User>(
+    const query = await client.query(
       "INSERT INTO users (email, password) VALUES($1, $2) RETURNING id, email;",
       [email, passwordHash],
     );
@@ -26,14 +26,20 @@ async function signUp(
       throw new Error("Failed to create the user.");
     }
 
-    await client.query(
-      "INSERT INTO profiles(user_id, display_name) VALUES ($1, $2)",
-      [user.id, displayName],
+    const profileQuery = await client.query<User>(
+      "INSERT INTO profiles(user_id, display_name) VALUES ($1, $2) RETURNING user_id, display_name",
+      [user.user_id, displayName],
     );
+
+    const profile: User | undefined = profileQuery.rows[0];
+
+    if (!profile) {
+      throw new Error("Failed to create profile for the user");
+    }
 
     await client.query("COMMIT;");
 
-    return user;
+    return profile;
   } catch (error) {
     await client.query("ROLLBACK;");
     throw error;
@@ -123,22 +129,18 @@ async function findSessionByTokenHash(
   return result;
 }
 
-async function validateSession(
-  tokenHash: string,
-): Promise<AuthSession | undefined> {
+async function validateSession(tokenHash: string) {
   const query = await db.query(
     `
     SELECT 
-      id, 
-      user_id AS "userId",
-      token_hash AS "tokenHash",
-      created_at AS "createdAt",
-      expires_at AS "expiresAt"
+      profiles.user_id,
+      profiles.display_name
     FROM user_sessions
+    JOIN profiles ON profiles.user_id = user_sessions.user_id
     WHERE
-      token_hash = $1
+      user_sessions.token_hash = $1
     AND
-      expires_at > NOW() - INTERVAL '7 days';
+      user_sessions.expires_at > NOW() - INTERVAL '7 days'
     `,
     [tokenHash],
   );
