@@ -1,4 +1,4 @@
-import {
+import React, {
   useState,
   createContext,
   useContext,
@@ -28,40 +28,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     async function restoreSession() {
-      try {
-        const currentUser = await getCurrentUser();
+      const currentUser = await getCurrentUser();
 
-        if (!currentUser) {
-          setStatus("unauthenticated");
-          setUser(null);
-        }
-
-        setUser(currentUser);
-        setStatus("authenticated");
-      } catch (error) {
-        console.log(`Catched error ${error}`);
+      if (!currentUser) {
         setUser(null);
         setStatus("unauthenticated");
+        return;
       }
-    }
 
+      setUser(currentUser);
+      setStatus("authenticated");
+    }
     restoreSession();
   }, []);
 
   async function login(email: string, password: string) {
     try {
-      await requsetLogin(email, password);
+      const user: User = await requsetLogin(email, password);
 
-      const currentUser: User | null = await getCurrentUser();
-
-      if (!currentUser) {
-        throw new Error("Unable to authenticated session.");
+      if (!user) {
+        setUser(null);
+        setStatus("unauthenticated");
+        return;
       }
 
-      setStatus("authenticated");
       setUser(user);
-    } catch (error) {
-      console.log(`Catched error ${error}`);
+      setStatus("authenticated");
+    } catch (err) {
+      setUser(null);
+      setStatus("unauthenticated");
+      console.error(err);
     }
   }
 

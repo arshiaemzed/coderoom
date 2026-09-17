@@ -1,6 +1,9 @@
 import type { User } from "../auth/types";
 
-export async function requsetLogin(email: string, password: string) {
+export async function requsetLogin(
+  email: string,
+  password: string,
+): Promise<User> {
   const response = await fetch("http://localhost:3001/auth/login", {
     method: "POST",
     credentials: "include",
@@ -13,7 +16,7 @@ export async function requsetLogin(email: string, password: string) {
     }),
   });
 
-  const data = await response.json();
+  const data: User = await response.json();
 
   if (!response.ok) {
     throw new Error("Login failed !");

@@ -1,7 +1,5 @@
 import { useState } from "react";
-import "./login.css";
 import { useNavigate } from "react-router";
-import { requsetLogin } from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
 
 type LoginButtonProps = {
@@ -51,12 +49,13 @@ function LoginScreen() {
 
   return (
     <div className="login-screen">
-      <form className="login" onSubmit={handleSubmit}>
-        <div>
-          <div className="login-text-div">
-            <p>Please login to your account</p>
+      <form onSubmit={handleSubmit}>
+        <div className="login-div">
+          <div>
+            <p className="signin-text-p">Sign into your account</p>
           </div>
-          <div className="login-inputs-div">
+
+          <div className="email-and-pass-div">
             <EmailInput
               email={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -66,9 +65,9 @@ function LoginScreen() {
               password={password}
               onChange={(event) => setPassword(event.target.value)}
             />
-
-            <LoginButton isLoading={isLoading} />
           </div>
+
+          <LoginButton isLoading={isLoading} />
         </div>
       </form>
     </div>
@@ -77,11 +76,14 @@ function LoginScreen() {
 
 function EmailInput({ email, onChange }: EmailInputProps) {
   return (
-    <div className="login-email-div">
+    <div className="email-field">
+      <label className="email-label" htmlFor="email">
+        Email
+      </label>
       <input
-        className="login-email-input"
+        className="input"
         type="email"
-        placeholder="Email"
+        placeholder="Enter your email address"
         value={email}
         onChange={onChange}
       ></input>
@@ -91,10 +93,13 @@ function EmailInput({ email, onChange }: EmailInputProps) {
 
 function PasswordInput({ password, onChange }: PasswordInputProps) {
   return (
-    <div className="login-password-div">
+    <div>
+      <label className="password-field" htmlFor="password">
+        Password
+      </label>
       <input
-        className="login-password-input"
-        placeholder="Password"
+        className="input"
+        placeholder="Enter your password"
         type="password"
         value={password}
         onChange={onChange}
@@ -105,7 +110,7 @@ function PasswordInput({ password, onChange }: PasswordInputProps) {
 
 function LoginButton({ isLoading }: LoginButtonProps) {
   return (
-    <div className="button-div">
+    <div className="login-btn-div">
       <button className="login-btn">
         {isLoading ? "Logging In ..." : "Login"}
       </button>
