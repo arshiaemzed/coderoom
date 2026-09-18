@@ -1,19 +1,17 @@
 import express, { type Router } from "express";
-import authMiddleware from "../../shared/middleware/auth.middleware.js";
-import createRoomMiddleware from "./middlewares/createRoomMiddleware.js";
 import roomsController from "./rooms.controller.js";
-import { type Request, type Response, type NextFunction } from "express";
 import deleteRoomMiddleware from "./middlewares/deleteRoomMiddleware.js";
+import cookieMiddleware from "../../shared/middleware/cookie.middleware.js";
 
 const roomsRouter: Router = express.Router();
 
-roomsRouter.get("/rooms", authMiddleware, roomsController.getAllRooms);
+roomsRouter.get("/rooms", cookieMiddleware, roomsController.getAllRooms);
 
-roomsRouter.post("/rooms", authMiddleware, roomsController.createRoom);
+roomsRouter.post("/rooms", cookieMiddleware, roomsController.createRoom);
 
 roomsRouter.delete(
   "/rooms/:id",
-  authMiddleware,
+  cookieMiddleware,
   deleteRoomMiddleware,
   roomsController.deleteRoom,
 );
