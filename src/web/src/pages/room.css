@@ -1,9 +1,25 @@
 .room-header {
+  border-bottom: 1px solid #ccc;
+}
+
+.room-header-content {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 16px 24px;
+
   display: flex;
   justify-content: space-between;
-  padding-left: 16px;
-  padding-right: 16px;
-  border: 1px black solid;
+  align-items: center;
+}
+
+.room-header-content {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 16px 24px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .room-header-displayname-and-logout-btn {
@@ -21,8 +37,36 @@
 }
 
 .room-grid {
-  display: flex;
-  justify-content: space-between;
+  width: min(1100px, 100%);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  margin: 0 auto;
+  gap: 32px;
   padding-left: 16px;
   padding-right: 16px;
+}
+
+.room-div {
+  min-height: 160px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.rooms-main {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+.room-heading {
+  width: min(1100px, 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 24px;
 }

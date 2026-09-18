@@ -8,13 +8,14 @@ type CodeRoom = {
 
 function Rooms() {
   return (
-    <>
+    <div className="rooms-page">
       <Header />
 
-      <Heading />
-
-      <RoomGrid />
-    </>
+      <main className="rooms-main">
+        <Heading />
+        <RoomGrid />
+      </main>
+    </div>
   );
 }
 
@@ -23,15 +24,17 @@ function Header() {
 
   return (
     <header className="room-header">
-      <div className="room-header-title-div">
-        <p className="room-header-title-p">CodeRoom</p>
-      </div>
-      <div className="room-header-displayname-and-logout-btn">
-        <div className="room-header-displayname-div">
-          <p className="room-header-displayname-p">{user?.display_name}</p>
+      <div className="room-header-content">
+        <div className="room-header-title-div">
+          <p className="room-header-title-p">CodeRoom</p>
         </div>
-        <div className="room-header-logout-div">
-          <button className="room-header-logout-btn">Logout</button>
+        <div className="room-header-displayname-and-logout-btn">
+          <div className="room-header-displayname-div">
+            <p className="room-header-displayname-p">{user?.display_name}</p>
+          </div>
+          <div className="room-header-logout-div">
+            <button className="room-header-logout-btn">Logout</button>
+          </div>
         </div>
       </div>
     </header>
@@ -61,9 +64,7 @@ function RoomGrid() {
         <div>No rooms available</div>
       ) : (
         rooms.map((e) => (
-          <div>
-            <Room key={e.id} ownerName={e.ownerName} roomName={e.name} />
-          </div>
+          <Room key={e.id} ownerName={e.ownerName} roomName={e.name} />
         ))
       )}
     </div>
