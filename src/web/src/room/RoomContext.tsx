@@ -6,38 +6,44 @@ import {
   type ReactNode,
 } from "react";
 import { fetchRooms } from "../api/room";
+import { useAuth } from "../auth/AuthContext";
 
 type Room = {
   id: string;
   name: string;
-};
-
-type RoomContextValue = {
-  rooms: Array<Room>;
+  userId: string;
+  createdAt: Date;
 };
 
 type RoomContextProps = {
   children: ReactNode;
 };
 
-const RoomContext = createContext<RoomContextValue | null>(null);
+const RoomContext = createContext<Room[]>([]);
 
 export function RoomProvider({ children }: RoomContextProps) {
-  const [rooms, setRoom] = useState<RoomContextValue | null>(null);
+  const [rooms, setRooms] = useState<Room[]>([]);
+
+  const { status } = useAuth();
 
   useEffect(() => {
+    if (status !== "authenticated") {
+      setRooms([]);
+      return;
+    }
+
     async function getRooms() {
       try {
         const rooms = await fetchRooms();
-        setRoom(rooms);
+        setRooms(rooms);
       } catch (err) {
-        setRoom(null);
+        setRooms([]);
         console.error(err);
       }
     }
 
     getRooms();
-  });
+  }, [status]);
 
   return <RoomContext value={rooms}>{children}</RoomContext>;
 }
