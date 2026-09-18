@@ -1,7 +1,10 @@
 import { useAuth } from "../auth/AuthContext";
+import { useRoom } from "../room/RoomContext";
 
 function Rooms() {
   const { user } = useAuth();
+
+  const { rooms } = useRoom();
 
   return (
     <>
