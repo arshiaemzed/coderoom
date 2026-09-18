@@ -1,23 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { fetchRooms } from "../api/room";
 import { useAuth } from "../auth/AuthContext";
-
-type Room = {
-  id: string;
-  name: string;
-  userId: string;
-  createdAt: Date;
-};
-
-type RoomContextProps = {
-  children: ReactNode;
-};
+import type { Room, RoomContextProps } from "./types";
 
 const RoomContext = createContext<Room[]>([]);
 

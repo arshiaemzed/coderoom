@@ -1,7 +1,8 @@
 interface DatabaseRoom {
   id: string;
   name: string;
-  userId: string;
+  ownerId: string;
+  ownerName: string;
   createdAt: Date;
 }
 

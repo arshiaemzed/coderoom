@@ -84,13 +84,19 @@ async function getUserRooms(userId: string) {
   const query = await db.query(
     `
     SELECT 
-      id, 
-      user_id AS "userId",
-      name,
-      created_at AS "createdAt"
+      rooms.id, 
+      rooms.user_id AS "ownerId",
+      rooms.name,
+      profiles.display_name AS "ownerName",
+      rooms.created_at AS "createdAt"
     FROM rooms
+    JOIN profiles
+    ON profiles.user_id =  rooms.user_id;
     `,
   );
+
+  console.log(query.rows);
+
   return query.rows;
 }
 

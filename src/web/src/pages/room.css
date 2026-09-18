@@ -1,0 +1,28 @@
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 16px;
+  padding-right: 16px;
+  border: 1px black solid;
+}
+
+.room-header-displayname-and-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 64px;
+}
+
+.room-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.room-grid {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 16px;
+  padding-right: 16px;
+}

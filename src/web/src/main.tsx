@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import { BrowserRouter } from "react-router";
 import { AuthProvider } from "./auth/AuthContext.tsx";
 import "./pages/login.css";
+import "./pages/room.css";
 import { RoomProvider } from "./room/RoomContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
