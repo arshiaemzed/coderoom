@@ -1,28 +1,28 @@
 import express, { Router } from "express";
-import authMiddleware from "../../shared/middleware/auth.middleware.js";
 import fileController from "./file.controller.js";
 import uploadFileMiddleware from "./middlewares/uploadfile.middleware.js";
 import getSpecificFileMiddleware from "./middlewares/get.specific.file.middleware.js";
+import cookieMiddleware from "../../shared/middleware/cookie.middleware.js";
 
 const filesRouter: Router = express.Router();
 
 filesRouter.post(
   "/rooms/:id/upload",
-  authMiddleware,
+  cookieMiddleware,
   uploadFileMiddleware,
   fileController.uploadFile,
 );
 
 filesRouter.get(
   "/rooms/:roomid/files/:fileid",
-  authMiddleware,
+  cookieMiddleware,
   getSpecificFileMiddleware,
   fileController.getSpecificFile,
 );
 
 filesRouter.get(
   "/rooms/:roomid/files",
-  authMiddleware,
+  cookieMiddleware,
   fileController.getRoomFiles,
 );
 
