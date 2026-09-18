@@ -45,7 +45,8 @@ function Heading() {
   return (
     <div className="room-heading">
       <div>
-        <p>Your rooms</p>
+        <h1>Your rooms</h1>
+        <p>Join a room or create your own</p>
       </div>
 
       <div>
@@ -75,7 +76,7 @@ function Room({ roomName, ownerName }: CodeRoom) {
   return (
     <div className="room-div">
       <div className="room-name-div">
-        <p>{roomName}</p>
+        <h2>{roomName}</h2>
       </div>
 
       <div className="room-owner-div">

@@ -1,19 +1,8 @@
 .room-header {
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--border);
 }
 
 .room-header-content {
-  width: min(1100px, 100%);
-  margin: 0 auto;
-  padding: 16px 24px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.room-header-content {
-  width: min(1100px, 100%);
   margin: 0 auto;
   padding: 16px 24px;
 
@@ -28,45 +17,148 @@
   gap: 64px;
 }
 
-.room-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
-.room-grid {
-  width: min(1100px, 100%);
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  margin: 0 auto;
-  gap: 32px;
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
 .room-div {
   min-height: 160px;
   padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.room-div:hover {
+  background: var(--surface-hover);
+  border-color: #3a414c;
 }
 
 .rooms-main {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-}
-.room-heading {
   width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 32px 24px;
+  box-sizing: border-box;
+}
+
+.room-heading {
+  width: 100%;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   margin-bottom: 24px;
+}
+
+.room-grid {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+
+  gap: 32px;
+}
+.room-header-title-p {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.room-header-displayname-p {
+  margin: 0;
+
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.room-header-displayname-and-logout-btn {
+  display: flex;
+  align-items: center;
+
+  gap: 24px;
+}
+
+.room-heading h1 {
+  margin: 0;
+
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.room-heading p {
+  margin: 6px 0 0;
+
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.room-name-div p {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.room-owner-div p {
+  margin: 0;
+
+  color: var(--text-secondary);
+
+  font-size: 14px;
+}
+
+.room-heading button {
+  padding: 10px 16px;
+
+  border: none;
+  border-radius: var(--radius);
+
+  background: var(--primary);
+  color: white;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.room-heading button:hover {
+  background: var(--primary-hover);
+}
+
+.room-join-btn {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: var(--radius);
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.room-join-btn:hover {
+  background: var(--surface-hover);
+}
+
+.room-header-logout-btn {
+  padding: 7px 12px;
+
+  background: transparent;
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border);
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.room-header-logout-btn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
 }

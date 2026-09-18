@@ -95,8 +95,6 @@ async function getUserRooms(userId: string) {
     `,
   );
 
-  console.log(query.rows);
-
   return query.rows;
 }
 

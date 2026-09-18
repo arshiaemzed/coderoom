@@ -1,0 +1,17 @@
+:root {
+  --bg: #0d0f12;
+  --surface: #15181d;
+  --surface-hover: #1a1e24;
+
+  --border: #292e36;
+
+  --text: #f2f4f7;
+  --text-secondary: #a1a7b0;
+
+  --primary: #4c8dff;
+  --primary-hover: #3b7ce8;
+
+  --danger: #ef5b5b;
+
+  --radius: 8px;
+}
