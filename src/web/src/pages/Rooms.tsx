@@ -75,16 +75,18 @@ function RoomGrid() {
 function Room({ roomName, ownerName }: CodeRoom) {
   return (
     <div className="room-div">
-      <div className="room-name-div">
-        <h2>{roomName}</h2>
-      </div>
+      <div>
+        <div className="room-name-div">
+          <h2>{roomName}</h2>
+        </div>
 
-      <div className="room-owner-div">
-        <p>Owner: {ownerName}</p>
+        <div className="room-owner-div">
+          <p>Owner: {ownerName}</p>
+        </div>
       </div>
 
       <div className="room-join-btn-div">
-        <button className="room-join-btn">Open Room</button>
+        <button className="room-join-btn">Connect</button>
       </div>
     </div>
   );

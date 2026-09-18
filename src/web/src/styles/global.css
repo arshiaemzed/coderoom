@@ -1,4 +1,13 @@
 @import "./token.css";
+
+*,
+*::before,
+*::after {
+  font-family: "Roboto", sans-serif;
+
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
 
