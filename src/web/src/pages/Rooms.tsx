@@ -1,9 +1,12 @@
 import { useAuth } from "../auth/AuthContext";
 import { useRoom } from "../room/RoomContext";
+import { FaCode } from "react-icons/fa";
+import { FaArrowRight } from "react-icons/fa6";
 
 type CodeRoom = {
   roomName: string;
   ownerName: string;
+  createdAt: Date;
 };
 
 function Rooms() {
@@ -42,15 +45,17 @@ function Header() {
 }
 
 function Heading() {
+  const rooms = useRoom();
+
   return (
     <div className="room-heading">
       <div>
-        <h1>Your rooms</h1>
-        <p>Join a room or create your own</p>
+        <h1>Rooms</h1>
+        <p>{rooms.length} Workspace</p>
       </div>
 
       <div>
-        <button>Create new room</button>
+        <button>New Room</button>
       </div>
     </div>
   );
@@ -65,16 +70,28 @@ function RoomGrid() {
         <div>No rooms available</div>
       ) : (
         rooms.map((e) => (
-          <Room key={e.id} ownerName={e.ownerName} roomName={e.name} />
+          <Room
+            key={e.id}
+            ownerName={e.ownerName}
+            roomName={e.name}
+            createdAt={e.createdAt}
+          />
         ))
       )}
     </div>
   );
 }
 
-function Room({ roomName, ownerName }: CodeRoom) {
+function Room({ roomName, ownerName, createdAt }: CodeRoom) {
+  const date = new Date(createdAt);
+
   return (
     <div className="room-div">
+      <div className="room-icons-div">
+        <FaCode />
+        <FaArrowRight />
+      </div>
+
       <div>
         <div className="room-name-div">
           <h2>{roomName}</h2>
@@ -85,11 +102,43 @@ function Room({ roomName, ownerName }: CodeRoom) {
         </div>
       </div>
 
-      <div className="room-join-btn-div">
-        <button className="room-join-btn">Connect</button>
+      <div>
+        Created At {translateMonth(date.getMonth())} {date.getDate()}
       </div>
     </div>
   );
+}
+
+function translateMonth(monthNumber: number): string {
+  switch (monthNumber) {
+    case 1:
+      return "Jan";
+    case 2:
+      return "Feb";
+    case 3:
+      return "March";
+    case 4:
+      return "Apr";
+    case 5:
+      return "May";
+    case 6:
+      return "Jun";
+    case 7:
+      return "Jul";
+    case 8:
+      return "Aug";
+    case 9:
+      return "Sep";
+    case 10:
+      return "Oct";
+    case 11:
+      return "Nov";
+    case 12:
+      return "Dec";
+
+    default:
+      return "Invalid";
+  }
 }
 
 export default Rooms;
