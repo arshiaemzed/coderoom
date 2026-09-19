@@ -16,6 +16,7 @@ function Rooms() {
 
       <main className="rooms-main">
         <Heading />
+        <SearchBar />
         <RoomGrid />
       </main>
     </div>
@@ -41,6 +42,14 @@ function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+function SearchBar() {
+  return (
+    <div className="searchbar-div">
+      <input className="searchbar-input" placeholder="Enter room name"></input>
+    </div>
   );
 }
 

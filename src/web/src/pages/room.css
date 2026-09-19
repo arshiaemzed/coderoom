@@ -165,3 +165,20 @@
   display: flex;
   justify-content: space-between;
 }
+
+.searchbar-input {
+  width: min(1100px, 100%);
+  margin-bottom: 64px;
+  height: 42px;
+  padding-left: 8px;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+}
+
+.searchbar-input:hover {
+  border: 1px solid var(--border-hover);
+}

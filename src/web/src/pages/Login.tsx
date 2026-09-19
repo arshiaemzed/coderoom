@@ -94,15 +94,17 @@ function EmailInput({ email, onChange }: EmailInputProps) {
       <input
         className="input"
         type="email"
+        onChange={onChange}
         placeholder="Enter your email address"
         value={email}
-        onChange={onChange}
       ></input>
     </div>
   );
 }
 
 function PasswordInput({ password, onChange }: PasswordInputProps) {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="password-field">
       <div className="password-label-and-icon">
@@ -118,10 +120,18 @@ function PasswordInput({ password, onChange }: PasswordInputProps) {
         <input
           className="input"
           placeholder="Enter your password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           value={password}
           onChange={onChange}
         ></input>
+
+        <button
+          type="button"
+          className="password-toggle"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? <IoMdEye size={24} /> : <IoMdEyeOff size={24} />}
+        </button>
       </div>
     </div>
   );

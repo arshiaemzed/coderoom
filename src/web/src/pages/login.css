@@ -6,7 +6,7 @@
 }
 
 .login-div {
-  width: 68vh;
+  width: 64vh;
   display: grid;
   gap: 16px;
   padding: 32px;
@@ -38,6 +38,16 @@
   font-size: 16px;
   border-radius: 8px;
   height: 42px;
+  cursor: pointer;
+}
+
+.input:hover {
+  border: 1px solid var(--border-hover);
+}
+
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgb(79 140 255 / 0.12);
 }
 
 .login-btn {
@@ -111,6 +121,22 @@
 }
 
 .password-input-and-icon {
-  display: flex;
-  align-items: center;
+  position: relative;
+}
+
+.password-toggle {
+  display: grid;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  color: white;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  border-radius: 999px;
+}
+
+.password-toggle:hover {
+  background-color: var(--primary);
 }
