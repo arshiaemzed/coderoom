@@ -91,7 +91,8 @@ async function getUserRooms(userId: string) {
       rooms.created_at AS "createdAt"
     FROM rooms
     JOIN profiles
-    ON profiles.user_id =  rooms.user_id;
+    ON profiles.user_id =  rooms.user_id
+    ORDER BY rooms.created_at DESC;
     `,
   );
 

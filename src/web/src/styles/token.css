@@ -1,4 +1,6 @@
 :root {
+  --font-mono: "Space Mono", "SFMono-Regular", Consolas, monospace;
+
   --bg: #0b0d10;
 
   --surface: #111418;

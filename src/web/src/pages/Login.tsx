@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../auth/AuthContext";
+import { CiLogin } from "react-icons/ci";
+import { MdEmail } from "react-icons/md";
+import { RiLockPasswordFill } from "react-icons/ri";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 type LoginButtonProps = {
   isLoading: boolean;
@@ -51,8 +55,9 @@ function LoginScreen() {
     <div className="login-screen">
       <form onSubmit={handleSubmit}>
         <div className="login-div">
-          <div>
-            <p className="signin-text-p">Sign into your account</p>
+          <div className="signin-text-div">
+            <CiLogin size={32} />
+            <p className="signin-text-p">PLEASE SIGN IN TO CONTINUE</p>
           </div>
 
           <div className="email-and-pass-div">
@@ -77,9 +82,15 @@ function LoginScreen() {
 function EmailInput({ email, onChange }: EmailInputProps) {
   return (
     <div className="email-field">
-      <label className="email-label" htmlFor="email">
-        Email
-      </label>
+      <div className="email-label-and-icon">
+        <div className="email-icon-div">
+          <MdEmail size={16} />
+        </div>
+        <label className="email-label" htmlFor="email">
+          Email
+        </label>
+      </div>
+
       <input
         className="input"
         type="email"
@@ -93,17 +104,25 @@ function EmailInput({ email, onChange }: EmailInputProps) {
 
 function PasswordInput({ password, onChange }: PasswordInputProps) {
   return (
-    <div>
-      <label className="password-field" htmlFor="password">
-        Password
-      </label>
-      <input
-        className="input"
-        placeholder="Enter your password"
-        type="password"
-        value={password}
-        onChange={onChange}
-      ></input>
+    <div className="password-field">
+      <div className="password-label-and-icon">
+        <div className="password-icon-div">
+          <RiLockPasswordFill />
+        </div>
+        <label className="password-label" htmlFor="password">
+          Password
+        </label>
+      </div>
+
+      <div className="password-input-and-icon">
+        <input
+          className="input"
+          placeholder="Enter your password"
+          type="password"
+          value={password}
+          onChange={onChange}
+        ></input>
+      </div>
     </div>
   );
 }

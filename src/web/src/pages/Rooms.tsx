@@ -50,12 +50,14 @@ function Heading() {
   return (
     <div className="room-heading">
       <div>
-        <h1>Rooms</h1>
-        <p>{rooms.length} Workspace</p>
+        <h1 className="room-heading-rooms-p">Rooms</h1>
+        <p className="room-heading-workspace-p">{rooms.length} Workspace</p>
       </div>
 
       <div>
-        <button>New Room</button>
+        <button>
+          <div>New Room</div>
+        </button>
       </div>
     </div>
   );
@@ -93,16 +95,12 @@ function Room({ roomName, ownerName, createdAt }: CodeRoom) {
       </div>
 
       <div>
-        <div className="room-name-div">
-          <h2>{roomName}</h2>
-        </div>
+        <div className="room-name-div">{roomName}</div>
 
-        <div className="room-owner-div">
-          <p>Owner: {ownerName}</p>
-        </div>
+        <div className="room-owner-div">Owner: {ownerName}</div>
       </div>
 
-      <div>
+      <div className="create-at-div">
         Created At {translateMonth(date.getMonth())} {date.getDate()}
       </div>
     </div>

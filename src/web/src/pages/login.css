@@ -6,9 +6,13 @@
 }
 
 .login-div {
-  width: 40vh;
+  width: 68vh;
   display: grid;
   gap: 16px;
+  padding: 32px;
+  border-radius: 8px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
 }
 
 .signin-text-p {
@@ -23,12 +27,17 @@
 
 .input {
   width: 100%;
+  background-color: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
   padding-left: 8px;
   padding-top: 8px;
   padding-bottom: 8px;
   outline: none;
   box-sizing: border-box;
   font-size: 16px;
+  border-radius: 8px;
+  height: 42px;
 }
 
 .login-btn {
@@ -40,9 +49,14 @@
   padding-right: 16px;
   border: none;
   cursor: pointer;
-  background-color: lightblue;
+  background-color: var(--primary);
   font-size: 16px;
   font-weight: 500;
+  border-radius: 8px;
+}
+
+.login-btn:hover {
+  background-color: var(--primary-hover);
 }
 
 .login-btn-div {
@@ -58,4 +72,45 @@
 .password-label {
   font-size: 16px;
   font-weight: 400;
+}
+
+.signin-text-div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.email-field {
+  display: grid;
+  gap: 8px;
+}
+
+.password-field {
+  display: grid;
+  gap: 4px;
+}
+
+.email-icon-div {
+  display: grid;
+}
+
+.email-label-and-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.password-label-and-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.password-icon-div {
+  display: grid;
+}
+
+.password-input-and-icon {
+  display: flex;
+  align-items: center;
 }
