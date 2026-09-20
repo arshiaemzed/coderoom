@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { BrowserRouter } from "react-router";
 import { AuthProvider } from "./auth/AuthContext.tsx";
-import "./pages/login.css";
-import "./pages/room.css";
+import "./styles/login.css";
+import "./styles/room.css";
 import "./styles/global.css";
 import { RoomProvider } from "./room/RoomContext.tsx";
 

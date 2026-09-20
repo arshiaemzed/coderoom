@@ -19,7 +19,6 @@ export function RoomProvider({ children }: RoomContextProps) {
     async function getRooms() {
       try {
         const rooms = await fetchRooms();
-        console.log(rooms);
         setRooms(rooms);
       } catch (err) {
         setRooms([]);

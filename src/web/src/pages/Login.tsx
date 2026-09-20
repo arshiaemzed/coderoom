@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { useAuth } from "../auth/AuthContext";
 import { CiLogin } from "react-icons/ci";
 import { MdEmail } from "react-icons/md";
@@ -31,9 +30,7 @@ function LoginScreen() {
 
   const [isLoading, setLoading] = useState(false);
 
-  const { login } = useAuth();
-
-  const navigate = useNavigate();
+  const { error, login } = useAuth();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,8 +39,6 @@ function LoginScreen() {
       setLoading(true);
 
       await login(email, password);
-
-      navigate("/rooms");
     } catch (error) {
       console.log(`error catched: ${error}`);
     } finally {
@@ -57,7 +52,7 @@ function LoginScreen() {
         <div className="login-div">
           <div className="signin-text-div">
             <CiLogin size={32} />
-            <p className="signin-text-p">PLEASE SIGN IN TO CONTINUE</p>
+            <p className="signin-text-p">SIGN IN TO CONTINUE</p>
           </div>
 
           <div className="email-and-pass-div">
@@ -70,6 +65,10 @@ function LoginScreen() {
               password={password}
               onChange={(event) => setPassword(event.target.value)}
             />
+
+            <div className="form-error">
+              {error.hasError && error.type === "system" ? error.message : null}
+            </div>
           </div>
 
           <LoginButton isLoading={isLoading} />
@@ -80,6 +79,8 @@ function LoginScreen() {
 }
 
 function EmailInput({ email, onChange }: EmailInputProps) {
+  const { error } = useAuth();
+
   return (
     <div className="email-field">
       <div className="email-label-and-icon">
@@ -93,11 +94,14 @@ function EmailInput({ email, onChange }: EmailInputProps) {
 
       <input
         className="input"
-        type="email"
+        aria-invalid={error.hasError && error.type === "email-field"}
         onChange={onChange}
         placeholder="Enter your email address"
         value={email}
       ></input>
+      {error.hasError && error.type === "email-field" ? (
+        <div className="email-field-error">{error.message}</div>
+      ) : null}
     </div>
   );
 }

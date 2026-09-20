@@ -16,10 +16,10 @@ export async function requsetLogin(
     }),
   });
 
-  const data: User = await response.json();
+  const data = await response.json();
 
   if (!response.ok) {
-    throw new Error("Login failed !");
+    throw new Error(data["error"]["message"]);
   }
 
   return data;
