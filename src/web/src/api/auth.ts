@@ -32,15 +32,5 @@ export async function getCurrentUser(): Promise<User | null> {
   }
   const data: User = await response.json();
 
-  connectToServer();
-
   return data;
-}
-
-function connectToServer() {
-  const ws = new WebSocket(`ws://localhost:3002/`);
-
-  ws.addEventListener("open", (ev: Event) => {
-    console.log(`connected`);
-  });
 }

@@ -1,3 +1,4 @@
+import { Result } from "pg";
 import db from "../../infrastructure/postgres/pool.js";
 import {
   type AuthSession,
@@ -129,14 +130,20 @@ async function findSessionByTokenHash(
   return result;
 }
 
-async function validateSession(tokenHash: string) {
+async function validateSession(
+  tokenHash: string,
+): Promise<AuthSession | undefined> {
   const query = await db.query(
     `
     SELECT 
-      profiles.user_id,
-      profiles.display_name
+      profiles.id,
+      user_sessions.user_id AS "userId",
+      profiles.display_name AS "displayName",
+      user_sessions.token_hash AS "tokenHash",
+      user_sessions.created_at AS "createdAt",
+      user_sessions.expires_at AS "expiresAt" 
     FROM user_sessions
-    JOIN profiles ON profiles.user_id = user_sessions.user_id
+    INNER JOIN profiles ON profiles.user_id = user_sessions.user_id
     WHERE
       user_sessions.token_hash = $1
     AND
@@ -145,7 +152,7 @@ async function validateSession(tokenHash: string) {
     [tokenHash],
   );
 
-  const result = query.rows[0];
+  const result: AuthSession | undefined = query.rows[0];
 
   return result;
 }

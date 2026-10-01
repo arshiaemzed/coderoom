@@ -7,14 +7,17 @@ import "./styles/login.css";
 import "./styles/room.css";
 import "./styles/global.css";
 import { RoomProvider } from "./room/RoomContext.tsx";
+import { WebSocketProvider } from "./websocket/WebSocketProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <RoomProvider>
-          <App />
-        </RoomProvider>
+        <WebSocketProvider>
+          <RoomProvider>
+            <App />
+          </RoomProvider>
+        </WebSocketProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

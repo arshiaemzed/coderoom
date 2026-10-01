@@ -28,7 +28,7 @@ async function login(req: Request, res: Response) {
 async function authMe(req: Request, res: Response) {
   const tokenHash = req.cookies.session;
 
-  const session: AuthSession = await authService.authMe(tokenHash);
+  const session = await authService.authMe(tokenHash);
 
   return res.status(200).json(session);
 }

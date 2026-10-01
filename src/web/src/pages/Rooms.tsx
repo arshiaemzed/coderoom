@@ -2,11 +2,14 @@ import { useAuth } from "../auth/AuthContext";
 import { useRoom } from "../room/RoomContext";
 import { FaCode } from "react-icons/fa";
 import { FaArrowRight } from "react-icons/fa6";
+import { useWebSocket } from "../websocket/useWebSocket";
 
 type CodeRoom = {
+  roomId: string;
   roomName: string;
   ownerName: string;
   createdAt: Date;
+  joinRoomAction: Function;
 };
 
 function Rooms() {
@@ -75,6 +78,8 @@ function Heading() {
 function RoomGrid() {
   const rooms = useRoom();
 
+  const { joinRoom } = useWebSocket();
+
   return (
     <div className="room-grid">
       {rooms.length === 0 ? (
@@ -82,10 +87,12 @@ function RoomGrid() {
       ) : (
         rooms.map((e) => (
           <Room
+            roomId={e.id}
             key={e.id}
             ownerName={e.ownerName}
             roomName={e.name}
             createdAt={e.createdAt}
+            joinRoomAction={joinRoom}
           />
         ))
       )}
@@ -93,11 +100,17 @@ function RoomGrid() {
   );
 }
 
-function Room({ roomName, ownerName, createdAt }: CodeRoom) {
+function Room({
+  roomId,
+  roomName,
+  ownerName,
+  createdAt,
+  joinRoomAction,
+}: CodeRoom) {
   const date = new Date(createdAt);
 
   return (
-    <div className="room-div">
+    <div onClick={() => joinRoomAction(roomId)} className="room-div">
       <div className="room-icons-div">
         <FaCode />
         <FaArrowRight />

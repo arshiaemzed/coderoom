@@ -3,9 +3,13 @@ import AppError from "../../shared/errors/error.js";
 import argon2 from "argon2";
 import errorCodes from "../../shared/errors/errorCodes.js";
 import crypto from "crypto";
-import type { AuthSession } from "./auth.types.js";
+import type { AuthSession, User, UserPasswordInfo } from "./auth.types.js";
 
-async function signUp(email: string, password: string, displayName: string) {
+async function signUp(
+  email: string,
+  password: string,
+  displayName: string,
+): Promise<User> {
   const userExists: boolean = await authRepository.userExists(email);
 
   if (userExists) {
@@ -17,18 +21,23 @@ async function signUp(email: string, password: string, displayName: string) {
   }
 
   // the default algorithm for hashing is argon2id
-  const hashedPassword = await argon2.hash(password, {
+  const hashedPassword: string = await argon2.hash(password, {
     hashLength: 64,
     memoryCost: 2 ** 16, // 2^16 = 65536 KiB / 64 MIB
   });
 
-  const user = await authRepository.signUp(email, hashedPassword, displayName);
+  const user: User = await authRepository.signUp(
+    email,
+    hashedPassword,
+    displayName,
+  );
 
   return user;
 }
 
 async function login(email: string, password: string) {
-  const user = await authRepository.findUser(email);
+  const user: UserPasswordInfo | undefined =
+    await authRepository.findUser(email);
 
   if (!user) {
     throw new AppError(
@@ -48,17 +57,15 @@ async function login(email: string, password: string) {
     );
   }
 
-  const sessionToken = crypto.randomBytes(32).toString("hex");
+  const rawToken: string = crypto.randomBytes(32).toString("hex");
 
-  const tokenHash = crypto
+  const tokenHash: string = crypto
     .createHash("sha256")
-    .update(sessionToken)
+    .update(rawToken)
     .digest("hex");
 
-  const createdSession = await authRepository.createAuthSession(
-    tokenHash,
-    user.id,
-  );
+  const createdSession: AuthSession | undefined =
+    await authRepository.createAuthSession(tokenHash, user.id);
 
   if (!createdSession) {
     throw new AppError(
@@ -71,27 +78,32 @@ async function login(email: string, password: string) {
   return {
     id: createdSession.userId,
     displayName: createdSession.displayName,
-    token: sessionToken,
+    token: rawToken,
   };
 }
 
-async function authMe(token: string) {
+async function authMe(rawToken: string) {
   const tokenHash: string = crypto
     .createHash("sha256")
-    .update(token)
+    .update(rawToken)
     .digest("hex");
 
-  const isValid = await authRepository.validateSession(tokenHash);
+  console.log(tokenHash);
 
-  if (!isValid) {
+  const authSession = await authRepository.validateSession(tokenHash);
+
+  if (!authSession) {
     throw new AppError(
       401,
       "Unauthorized.",
       errorCodes.INVALID_COOKIE_BASED_TOKEN,
     );
   }
-
-  return isValid;
+  return {
+    displayName: authSession.displayName,
+    userId: authSession.userId,
+    token: rawToken,
+  };
 }
 
 export default {

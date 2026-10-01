@@ -1,6 +1,7 @@
 interface User {
   user_id: string;
   display_name: string;
+  token: string;
 }
 
 interface UserPasswordInfo {
