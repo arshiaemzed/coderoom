@@ -40,8 +40,6 @@ async function login(email: string, password: string) {
 
   const passwordMatch: boolean = await argon2.verify(user.password, password);
 
-  console.log(`Password match : ${passwordMatch}`);
-
   if (!passwordMatch) {
     throw new AppError(
       401,

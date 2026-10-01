@@ -1,10 +1,11 @@
+import { apiHandler } from "../apiHandler";
 import type { User } from "../auth/types";
 
 export async function requsetLogin(
   email: string,
   password: string,
 ): Promise<User> {
-  const response = await fetch("http://localhost:3001/auth/login", {
+  const response: Response = await fetch("http://localhost:3001/auth/login", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -16,11 +17,7 @@ export async function requsetLogin(
     }),
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data["error"]["message"]);
-  }
+  const data: User = await apiHandler(response);
 
   return data;
 }
