@@ -6,6 +6,7 @@ import { type Event } from "./websocket.types.js";
 import messageHandler from "./handlers/message.handler.js";
 import cursorHandler from "./handlers/cursor.handler.js";
 import fileHandler from "./handlers/file.handler.js";
+import WebSocketError from "./websocket.error.js";
 
 async function eventRouter(socket: WebSocket, data: any) {
   const event = JSON.parse(data.toString());
@@ -18,47 +19,59 @@ async function eventRouter(socket: WebSocket, data: any) {
   // Normal events
   if (connectionManager.get(socket) && event.type !== "login" && !event.token) {
     const userEvent: Event = event;
-
-    switch (userEvent.type) {
-      case "join_room":
-        await roomHandler.checkRoomAndJoin(socket, userEvent.room);
-        await fileHandler.loadFiles(socket, userEvent.room);
-        break;
-      case "leave_room":
-        await roomHandler.checkRoomAndLeave(socket, userEvent.room);
-        break;
-      case "insert_operation":
-        if (!userEvent.insert) {
+    try {
+      switch (userEvent.type) {
+        case "join_room":
+          await roomHandler.checkRoomAndJoin(socket, userEvent.room);
+          await fileHandler.loadFiles(socket, userEvent.room);
           break;
-        }
+        case "leave_room":
+          await roomHandler.checkRoomAndLeave(socket, userEvent.room);
+          break;
+        case "insert_operation":
+          if (!userEvent.insert) {
+            break;
+          }
 
-        await fileHandler.insertOp(socket, userEvent.room, userEvent.insert);
-        break;
+          await fileHandler.insertOp(socket, userEvent.room, userEvent.insert);
+          break;
 
-      case "delete_operation":
-        if (!userEvent.delete) {
-          return;
-        }
+        case "delete_operation":
+          if (!userEvent.delete) {
+            return;
+          }
 
-        await fileHandler.deleteOp(socket, userEvent.room, userEvent.delete!);
+          await fileHandler.deleteOp(socket, userEvent.room, userEvent.delete!);
 
-        break;
+          break;
 
-      case "send_message":
-        messageHandler.sendMessage(
-          socket,
-          userEvent.room,
-          userEvent.message ?? "",
-        );
-        break;
-      case "move_cursor":
-        cursorHandler.moveCursor(
-          socket,
-          userEvent.room,
-          userEvent.dx ?? 0,
-          userEvent.dy ?? 0,
-        );
-        break;
+        case "send_message":
+          messageHandler.sendMessage(
+            socket,
+            userEvent.room,
+            userEvent.message ?? "",
+          );
+          break;
+        case "move_cursor":
+          cursorHandler.moveCursor(
+            socket,
+            userEvent.room,
+            userEvent.dx ?? 0,
+            userEvent.dy ?? 0,
+          );
+          break;
+      }
+    } catch (err: any) {
+      const errorFormat = {
+        code: err.code || "INTERNAL_WEBSOCKET_ERROR",
+        message: err.message || String(err),
+      };
+
+      if (err instanceof WebSocketError) {
+        socket.send(JSON.stringify(errorFormat));
+      }
+
+      socket.send(JSON.stringify(errorFormat));
     }
   }
 }
