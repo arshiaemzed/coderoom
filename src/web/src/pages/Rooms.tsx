@@ -3,6 +3,7 @@ import { useRoom } from "../room/RoomContext";
 import { FaCode } from "react-icons/fa";
 import { FaArrowRight } from "react-icons/fa6";
 import { useWebSocket } from "../websocket/useWebSocket";
+import { Navigate, useNavigate } from "react-router";
 
 type CodeRoom = {
   roomId: string;
@@ -109,8 +110,21 @@ function Room({
 }: CodeRoom) {
   const date = new Date(createdAt);
 
+  const navigate = useNavigate();
+
   return (
-    <div onClick={() => joinRoomAction(roomId)} className="room-div">
+    <div
+      onClick={async () => {
+        try {
+          await joinRoomAction(roomId);
+
+          navigate(`/rooms/${roomId}`);
+        } catch (err) {
+          console.error(err);
+        }
+      }}
+      className="room-div"
+    >
       <div className="room-icons-div">
         <FaCode />
         <FaArrowRight />
