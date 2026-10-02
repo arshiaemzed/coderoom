@@ -21,12 +21,8 @@ async function eventRouter(socket: WebSocket, data: any) {
 
     switch (userEvent.type) {
       case "join_room":
-        try {
-          await roomHandler.checkRoomAndJoin(socket, userEvent.room);
-          await fileHandler.loadFiles(socket, userEvent.room);
-        } catch (err) {
-          console.log(err);
-        }
+        await roomHandler.checkRoomAndJoin(socket, userEvent.room);
+        await fileHandler.loadFiles(socket, userEvent.room);
         break;
       case "leave_room":
         await roomHandler.checkRoomAndLeave(socket, userEvent.room);

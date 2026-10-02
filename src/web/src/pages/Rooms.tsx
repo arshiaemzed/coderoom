@@ -3,7 +3,7 @@ import { useRoom } from "../room/RoomContext";
 import { FaCode } from "react-icons/fa";
 import { FaArrowRight } from "react-icons/fa6";
 import { useWebSocket } from "../websocket/useWebSocket";
-import { Navigate, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 type CodeRoom = {
   roomId: string;
