@@ -15,7 +15,7 @@ function join(client: WebSocket, user: Client, data: DatabaseRoom): Room {
       members: new Map<WebSocket, Client>(),
       cursors: new Map<WebSocket, Cursor>(),
       messages: new Array<Message>(),
-      owner: data.userId,
+      owner: data.ownerId,
     };
 
     addNewRoom(newRoom);
