@@ -2,6 +2,7 @@ import LoginScreen from "./pages/Login";
 import { Navigate, Route, Routes } from "react-router";
 import Rooms from "./pages/Rooms";
 import { useAuth } from "./auth/AuthContext";
+import { SessionScreen } from "./pages/Session";
 
 function App() {
   const { status } = useAuth();
@@ -24,6 +25,17 @@ function App() {
           )
         }
       />
+
+      <Route
+        path="/rooms/:roomId"
+        element={
+          status === "unauthenticated" ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <SessionScreen />
+          )
+        }
+      ></Route>
 
       <Route
         path="/rooms"
