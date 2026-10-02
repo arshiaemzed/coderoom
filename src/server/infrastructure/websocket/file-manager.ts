@@ -50,14 +50,9 @@ function insertOperation(operation: Insert) {
 
   const fileContentArray = file.content.split("");
 
-  console.log(operation.position);
   fileContentArray.splice(operation.position, 0, operation.inserted);
   let updatedFileContent: string = fileContentArray.join("");
   file.content = updatedFileContent;
-
-  console.log(fileContentArray);
-
-  console.log(updatedFileContent);
 
   return room;
 }

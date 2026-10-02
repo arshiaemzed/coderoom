@@ -15,9 +15,17 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     reject: (error: Error) => void;
   } | null>(null);
 
+  const pendingAuthRef = useRef<{
+    resolve: () => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+
   const { status, user } = useAuth();
 
-  function connectToRoom(roomId: string): Promise<void> {
+  async function connectToRoom(roomId: string): Promise<void> {
+    // TODO: Fix hardcoded !
+    await authWebSocket(user!.token);
+
     return new Promise((resolve, reject) => {
       if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
         reject(new Error("You are not connected to the websocket server!"));
@@ -38,15 +46,24 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     });
   }
 
-  function authWebSocket(token: string) {
-    if (socketRef.current != null) {
+  function authWebSocket(token: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
+        reject(new Error("You are not connected to the websocket server!"));
+      }
+
       const message = JSON.stringify({
         type: "login",
         token: token,
       });
 
-      socketRef.current.send(message);
-    }
+      pendingAuthRef.current = {
+        resolve: resolve,
+        reject: reject,
+      };
+
+      socketRef.current?.send(message);
+    });
   }
 
   useEffect(() => {
@@ -59,7 +76,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       function handleOpen() {
         setConnectionStatus("connected");
-        authWebSocket(user!.token);
         console.log(`Connected to websocket server.`);
       }
 
@@ -74,9 +90,24 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
         const messageCode = data.code;
 
+        const messageType = data.type;
+
+        // listening for authentication success message
+        if (messageType === "login_success") {
+          pendingAuthRef.current?.resolve();
+          pendingAuthRef.current = null;
+        }
+
         // listening for joining room message
         if (messageCode === "you_joined_room") {
           pendingJoinRef.current?.resolve();
+          pendingJoinRef.current = null;
+        }
+
+        if (messageCode === "ROOM_NOT_FOUND") {
+          pendingJoinRef.current?.reject(
+            new Error("Hey i didnt found the room bozo."),
+          );
           pendingJoinRef.current = null;
         }
       }

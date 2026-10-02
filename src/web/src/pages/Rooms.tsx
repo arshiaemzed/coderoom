@@ -117,7 +117,6 @@ function Room({
       onClick={async () => {
         try {
           await joinRoomAction(roomId);
-
           navigate(`/rooms/${roomId}`);
         } catch (err) {
           console.error(err);

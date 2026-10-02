@@ -88,8 +88,6 @@ async function authMe(rawToken: string) {
     .update(rawToken)
     .digest("hex");
 
-  console.log(tokenHash);
-
   const authSession = await authRepository.validateSession(tokenHash);
 
   if (!authSession) {

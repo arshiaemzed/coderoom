@@ -41,11 +41,7 @@ async function deleteOp(client: WebSocket, roomId: string, operation: Delete) {
     position: operation.position,
   };
 
-  console.log(`fileId: ${operation.fileId}`);
-  console.log(`position: ${operation.position}`);
-
   data?.members.forEach((client, socket) => {
-    console.log("send delete mssage to all sockets in the room");
     socket.send(JSON.stringify(message));
   });
 }
@@ -65,7 +61,6 @@ async function insertOp(client: WebSocket, roomId: string, operation: Insert) {
   };
 
   data?.members.forEach((client, socket) => {
-    console.log("send insert mssage to all sockets in the room");
     socket.send(JSON.stringify(message));
   });
 }
