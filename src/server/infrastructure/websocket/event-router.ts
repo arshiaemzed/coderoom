@@ -30,14 +30,18 @@ async function eventRouter(socket: WebSocket, data: any) {
 
   try {
     // Authentication Events
-    if (clientMessage.event === "login" && clientMessage.data.token) {
+    if (
+      clientMessage.type === "request" &&
+      clientMessage.event === "login" &&
+      clientMessage.data.token
+    ) {
       await authHandler.auth(socket, authEvent.data.token, authEvent.requestId);
     }
 
     // Normal Room events
     if (
       connectionManager.get(socket) &&
-      clientMessage.type !== "requset" &&
+      clientMessage.type === "request" &&
       clientMessage.event !== "login"
     ) {
       switch (userEvent.event) {
@@ -112,7 +116,7 @@ async function eventRouter(socket: WebSocket, data: any) {
     }
   } catch (err: any) {
     const errorFormat = {
-      type: "response",
+      type: "error",
       requestId: userEvent.requestId,
       success: false,
       error: {
@@ -122,7 +126,6 @@ async function eventRouter(socket: WebSocket, data: any) {
     };
 
     socket.send(JSON.stringify(errorFormat));
-
     console.log(errorFormat);
   }
 }

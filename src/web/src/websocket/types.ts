@@ -11,4 +11,16 @@ type WebSocketProviderProps = {
   children: ReactNode;
 };
 
-export type { WebSocketContextValue, WebSocketProviderProps, ConnectionStatus };
+interface WebSocketRequest {
+  type: string;
+  requestId: string;
+  event: string;
+  data: any;
+}
+
+export type {
+  WebSocketContextValue,
+  WebSocketProviderProps,
+  ConnectionStatus,
+  WebSocketRequest,
+};

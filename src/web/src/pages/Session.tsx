@@ -13,6 +13,8 @@ export function SessionScreen() {
 
   const [roomStatus, setRoomStatus] = useState<RoomStatus>("joining");
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     if (!roomId) {
       setRoomStatus("error");
@@ -26,13 +28,24 @@ export function SessionScreen() {
 
     async function verifyAndJoin() {
       try {
+        console.log("pass 1");
         setRoomStatus("joining");
         await ws.joinRoom(roomId);
 
+        console.log("pass 2");
         setRoomStatus("joined");
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        const errorFormat = {
+          success: false,
+          error: {
+            code: err.code || "INTERNAL_WEBSOCKET_ERROR",
+            message: err.message || String(err),
+          },
+        };
+
         setRoomStatus("error");
+
+        setErrorMessage(errorFormat.error.message);
       }
     }
 
@@ -51,7 +64,7 @@ export function SessionScreen() {
     return <div>Room: {roomId}</div>;
   }
 
-  if (roomStatus === "error") {
-    return <div>An error has occured</div>;
+  if (roomStatus === "error" && errorMessage != null) {
+    return <div>{errorMessage}</div>;
   }
 }

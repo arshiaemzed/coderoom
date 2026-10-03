@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
-import type { ConnectionStatus, WebSocketProviderProps } from "./types";
+import type {
+  ConnectionStatus,
+  WebSocketProviderProps,
+  WebSocketRequest,
+} from "./types";
 import { WebSocketContext } from "./WebSocketContext";
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
@@ -9,61 +13,83 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
 
-  const pendingJoinRef = useRef<{
-    roomId: string;
-    resolve: () => void;
-    reject: (error: Error) => void;
-  } | null>(null);
-
-  const pendingAuthRef = useRef<{
-    resolve: () => void;
-    reject: (error: Error) => void;
-  } | null>(null);
+  const pendingRequests = useRef<
+    Map<
+      string,
+      {
+        reject: (err: Error) => void;
+        resolve: () => void;
+      }
+    >
+  >(new Map());
 
   const { status, user } = useAuth();
 
   async function connectToRoom(roomId: string): Promise<void> {
-    // TODO: Fix hardcoded !
-    await authWebSocket(user!.token);
+    try {
+      console.log("connectToRoom pass 1");
+      // TODO: Fix hardcoded !
+      await authWebSocket(user!.token);
+      console.log("connectToRoom pass 2");
 
-    return new Promise((resolve, reject) => {
-      if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
-        reject(new Error("You are not connected to the websocket server!"));
-      }
+      return new Promise((resolve, reject) => {
+        if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
+          reject(new Error("You are not connected to the websocket server!"));
+        }
 
-      pendingJoinRef.current = {
-        roomId: roomId,
-        resolve: resolve,
-        reject: reject,
-      };
+        const requestId: string = crypto.randomUUID();
 
-      const message = JSON.stringify({
-        type: "join_room",
-        room: roomId,
+        pendingRequests.current.set(requestId, {
+          resolve: resolve,
+          reject: reject,
+        });
+
+        console.log("promise ali");
+
+        const message: WebSocketRequest = {
+          type: "request",
+          requestId: requestId,
+          event: "join_room",
+          data: {
+            room: roomId,
+          },
+        };
+
+        socketRef.current?.send(JSON.stringify(message));
       });
-
-      socketRef.current?.send(message);
-    });
+    } catch (error) {
+      throw error;
+    }
   }
 
   function authWebSocket(token: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
-        reject(new Error("You are not connected to the websocket server!"));
-      }
+    try {
+      return new Promise((resolve, reject) => {
+        if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
+          reject(new Error("You are not connected to the websocket server!"));
+        }
 
-      const message = JSON.stringify({
-        type: "login",
-        token: token,
+        const requestId: string = crypto.randomUUID();
+
+        const message: WebSocketRequest = {
+          type: "request",
+          requestId: requestId,
+          event: "login",
+          data: {
+            token: token,
+          },
+        };
+
+        pendingRequests.current.set(requestId, {
+          resolve: resolve,
+          reject: reject,
+        });
+
+        socketRef.current?.send(JSON.stringify(message));
       });
-
-      pendingAuthRef.current = {
-        resolve: resolve,
-        reject: reject,
-      };
-
-      socketRef.current?.send(message);
-    });
+    } catch (error) {
+      throw error;
+    }
   }
 
   useEffect(() => {
@@ -76,39 +102,50 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       function handleOpen() {
         setConnectionStatus("connected");
-        console.log(`Connected to websocket server.`);
+        console.log("Connected to websocket server.");
       }
 
       function handleClose() {
         socketRef.current = null;
         setConnectionStatus("disconnected");
-        console.log(`Disconnected from websocket server.`);
+        console.log("Disconnected from websocket server.");
       }
 
       function handleMessage(ev: MessageEvent<any>) {
         const data = JSON.parse(ev["data"]);
 
-        const messageCode = data.code;
+        const eventType = data.type;
+        const ok = data.success;
+        const requestId = data.requestId;
 
-        const messageType = data.type;
+        if (eventType === "response") {
+          const action = data.action;
 
-        // listening for authentication success message
-        if (messageType === "login_success") {
-          pendingAuthRef.current?.resolve();
-          pendingAuthRef.current = null;
+          if (action === "login") {
+            if (ok) {
+              const request = pendingRequests.current.get(requestId);
+              request?.resolve();
+            }
+          }
+
+          if (action === "you_joined_room") {
+            if (ok) {
+              const request = pendingRequests.current.get(requestId);
+              request?.resolve();
+            }
+          }
         }
 
-        // listening for joining room message
-        if (messageCode === "you_joined_room") {
-          pendingJoinRef.current?.resolve();
-          pendingJoinRef.current = null;
-        }
+        if (eventType === "error") {
+          const errorObject = data.error;
 
-        if (messageCode === "ROOM_NOT_FOUND") {
-          pendingJoinRef.current?.reject(
-            new Error("Hey i didnt found the room bozo."),
-          );
-          pendingJoinRef.current = null;
+          console.log(data);
+
+          if (!ok) {
+            console.log(requestId);
+            const request = pendingRequests.current.get(requestId);
+            request?.reject(errorObject.message);
+          }
         }
       }
 

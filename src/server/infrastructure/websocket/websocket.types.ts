@@ -81,6 +81,14 @@ interface Delete {
   position: number;
 }
 
+interface WebSocketResponse {
+  type: string;
+  requestId: string;
+  success: boolean;
+  action: string;
+  data: any;
+}
+
 export type {
   Insert,
   Delete,
@@ -91,4 +99,5 @@ export type {
   Cursor,
   Message,
   File,
+  WebSocketResponse,
 };

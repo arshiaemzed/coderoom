@@ -4,7 +4,7 @@ import roomManager from "../room-manager.js";
 import joinRoomService from "../services/join.room.service.js";
 import type { DatabaseRoom } from "../../../modules/rooms/rooms.type.js";
 import leaveRoomService from "../services/leave.room.service.js";
-import type { Client, Room } from "../websocket.types.js";
+import type { Client, Room, WebSocketResponse } from "../websocket.types.js";
 
 async function checkRoomAndJoin(
   client: WebSocket,
@@ -20,9 +20,10 @@ async function checkRoomAndJoin(
 
   const room: Room = roomManager.join(client, user, data);
 
-  const message = {
+  const message: WebSocketResponse = {
     type: "response",
     requestId: requestId,
+    action: "you_joined_room",
     success: true,
     data: {
       members: Array.from(room.members.values()),

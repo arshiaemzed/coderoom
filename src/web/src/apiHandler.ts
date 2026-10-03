@@ -1,4 +1,4 @@
-import { ApiError } from "./apierror";
+import { ApiError } from "./apiError";
 
 export async function apiHandler(response: any) {
   const statusCode: number = response.status;

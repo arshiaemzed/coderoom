@@ -2,16 +2,11 @@ import type { AuthSession } from "../../../modules/auth/auth.types.js";
 import connectionManager from "../connection-manager.js";
 import { WebSocket } from "ws";
 import authService from "../services/auth.service.js";
+import type { WebSocketResponse } from "../websocket.types.js";
 
 async function auth(client: WebSocket, token: string, requestId: string) {
   if (connectionManager.get(client)) {
-    client.send(
-      JSON.stringify({
-        type: "message",
-        message: "You are already connected to the server",
-      }),
-    );
-    client.close();
+    throw new Error("You are already connected to the server.");
   }
 
   const clients = connectionManager.getAll();
@@ -21,14 +16,7 @@ async function auth(client: WebSocket, token: string, requestId: string) {
   const user = clients.values().find((e) => e.userId == authSession.userId);
 
   if (user) {
-    client.send(
-      JSON.stringify({
-        type: "message",
-        message: "There is someone already connected using the same creds.",
-      }),
-    );
-    client.close();
-    return;
+    throw new Error("Somebody is already logged in using your credentials.");
   }
 
   connectionManager.add(client, {
@@ -36,17 +24,17 @@ async function auth(client: WebSocket, token: string, requestId: string) {
     displayName: authSession.displayName,
   });
 
-  client.send(
-    JSON.stringify({
-      type: "response",
-      requestId: requestId,
-      success: true,
-      action: "login",
-      data: {
-        userId: authSession.userId,
-      },
-    }),
-  );
+  const response: WebSocketResponse = {
+    type: "response",
+    requestId: requestId,
+    action: "login",
+    success: true,
+    data: {
+      userId: authSession.userId,
+    },
+  };
+
+  client.send(JSON.stringify(response));
 }
 
 export default {
