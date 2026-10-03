@@ -31,7 +31,7 @@ async function eventRouter(socket: WebSocket, data: any) {
   try {
     // Authentication Events
     if (clientMessage.event === "login" && clientMessage.data.token) {
-      await authHandler.auth(socket, authEvent.data.token);
+      await authHandler.auth(socket, authEvent.data.token, authEvent.requestId);
     }
 
     // Normal Room events
