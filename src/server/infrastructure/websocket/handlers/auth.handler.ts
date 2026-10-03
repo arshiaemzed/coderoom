@@ -3,7 +3,7 @@ import connectionManager from "../connection-manager.js";
 import { WebSocket } from "ws";
 import authService from "../services/auth.service.js";
 
-async function auth(client: WebSocket, token: string) {
+async function auth(client: WebSocket, token: string, requestId: string) {
   if (connectionManager.get(client)) {
     client.send(
       JSON.stringify({
@@ -37,7 +37,15 @@ async function auth(client: WebSocket, token: string) {
   });
 
   client.send(
-    JSON.stringify({ type: "login_success", userId: authSession.userId }),
+    JSON.stringify({
+      type: "response",
+      requestId: requestId,
+      success: true,
+      action: "login",
+      data: {
+        userId: authSession.userId,
+      },
+    }),
   );
 }
 
