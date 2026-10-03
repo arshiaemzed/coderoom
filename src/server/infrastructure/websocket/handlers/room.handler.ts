@@ -6,7 +6,11 @@ import type { DatabaseRoom } from "../../../modules/rooms/rooms.type.js";
 import leaveRoomService from "../services/leave.room.service.js";
 import type { Client, Room } from "../websocket.types.js";
 
-async function checkRoomAndJoin(client: WebSocket, roomId: string) {
+async function checkRoomAndJoin(
+  client: WebSocket,
+  roomId: string,
+  requestId: string,
+) {
   const user: Client = connectionManager.checkAuth(client);
 
   const data: DatabaseRoom = await joinRoomService.joinRoom(
@@ -17,13 +21,16 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   const room: Room = roomManager.join(client, user, data);
 
   const message = {
-    code: "you_joined_room",
-    message: "You joined the room",
-    members: Array.from(room.members.values()),
-    cursors: Array.from(room.cursors.values()),
-    messages: room.messages,
-    roomId: room.id,
-    roomName: room.name,
+    type: "response",
+    requestId: requestId,
+    success: true,
+    data: {
+      members: Array.from(room.members.values()),
+      cursors: Array.from(room.cursors.values()),
+      messages: room.messages,
+      roomId: room.id,
+      roomName: room.name,
+    },
   };
 
   client.send(JSON.stringify(message));
@@ -38,7 +45,11 @@ async function checkRoomAndJoin(client: WebSocket, roomId: string) {
   });
 }
 
-async function checkRoomAndLeave(client: WebSocket, roomId: string) {
+async function checkRoomAndLeave(
+  client: WebSocket,
+  roomId: string,
+  requestId: string,
+) {
   const user: Client = connectionManager.checkAuth(client);
 
   const databaseRoom: DatabaseRoom = await leaveRoomService.leaveRoom(
@@ -49,6 +60,8 @@ async function checkRoomAndLeave(client: WebSocket, roomId: string) {
   const data: Room = roomManager.leave(client, user, databaseRoom);
 
   const message = {
+    type: "response",
+    requestId: requestId,
     code: "leaved_room",
     roomId: data.id,
     roomName: data.name,

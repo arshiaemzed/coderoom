@@ -2,77 +2,128 @@ import { WebSocket } from "ws";
 import authHandler from "./handlers/auth.handler.js";
 import connectionManager from "./connection-manager.js";
 import roomHandler from "./handlers/room.handler.js";
-import { type Event } from "./websocket.types.js";
+import { type AuthEvent, type Event } from "./websocket.types.js";
 import messageHandler from "./handlers/message.handler.js";
 import cursorHandler from "./handlers/cursor.handler.js";
 import fileHandler from "./handlers/file.handler.js";
-import WebSocketError from "./websocket.error.js";
 
 async function eventRouter(socket: WebSocket, data: any) {
-  const event = JSON.parse(data.toString());
+  let clientMessage: any;
 
-  // Authentication Events
-  if (event.type === "login" && event.token) {
-    await authHandler.auth(socket, event.token);
+  try {
+    clientMessage = JSON.parse(data.toString());
+  } catch (error) {
+    socket.send(
+      JSON.stringify({
+        type: "error",
+        error: {
+          code: "MALFORMED_JSON",
+          message: "Message must contain valid JSON",
+        },
+      }),
+    );
   }
 
-  // Normal events
-  if (connectionManager.get(socket) && event.type !== "login" && !event.token) {
-    const userEvent: Event = event;
-    try {
-      switch (userEvent.type) {
+  const userEvent: Event = clientMessage;
+
+  const authEvent: AuthEvent = clientMessage;
+
+  try {
+    // Authentication Events
+    if (clientMessage.event === "login" && clientMessage.data.token) {
+      await authHandler.auth(socket, authEvent.data.token);
+    }
+
+    // Normal Room events
+    if (
+      connectionManager.get(socket) &&
+      clientMessage.type !== "requset" &&
+      clientMessage.event !== "login"
+    ) {
+      switch (userEvent.event) {
         case "join_room":
-          await roomHandler.checkRoomAndJoin(socket, userEvent.room);
-          await fileHandler.loadFiles(socket, userEvent.room);
+          await roomHandler.checkRoomAndJoin(
+            socket,
+            userEvent.data.room,
+            userEvent.requestId,
+          );
+          await fileHandler.loadFiles(
+            socket,
+            userEvent.data.room,
+            userEvent.requestId,
+          );
           break;
         case "leave_room":
-          await roomHandler.checkRoomAndLeave(socket, userEvent.room);
+          await roomHandler.checkRoomAndLeave(
+            socket,
+            userEvent.data.room,
+            userEvent.requestId,
+          );
           break;
         case "insert_operation":
-          if (!userEvent.insert) {
+          if (!userEvent.data.insert) {
             break;
           }
 
-          await fileHandler.insertOp(socket, userEvent.room, userEvent.insert);
+          await fileHandler.insertOp(
+            socket,
+            userEvent.data.room,
+            userEvent.data.insert,
+            userEvent.requestId,
+          );
           break;
-
         case "delete_operation":
-          if (!userEvent.delete) {
-            return;
+          if (!userEvent.data.delete) {
+            break;
           }
 
-          await fileHandler.deleteOp(socket, userEvent.room, userEvent.delete!);
+          await fileHandler.deleteOp(
+            socket,
+            userEvent.data.room,
+            userEvent.data.delete,
+            userEvent.requestId,
+          );
 
           break;
-
         case "send_message":
+          if (!userEvent.data.message) {
+            break;
+          }
+
           messageHandler.sendMessage(
             socket,
-            userEvent.room,
-            userEvent.message ?? "",
+            userEvent.data.room,
+            userEvent.data.message,
           );
           break;
         case "move_cursor":
+          if (!userEvent.data.dx || !userEvent.data.dy) {
+            break;
+          }
+
           cursorHandler.moveCursor(
             socket,
-            userEvent.room,
-            userEvent.dx ?? 0,
-            userEvent.dy ?? 0,
+            userEvent.data.room,
+            userEvent.data.dx,
+            userEvent.data.dy,
           );
           break;
       }
-    } catch (err: any) {
-      const errorFormat = {
+    }
+  } catch (err: any) {
+    const errorFormat = {
+      type: "response",
+      requestId: userEvent.requestId,
+      success: false,
+      error: {
         code: err.code || "INTERNAL_WEBSOCKET_ERROR",
         message: err.message || String(err),
-      };
+      },
+    };
 
-      if (err instanceof WebSocketError) {
-        socket.send(JSON.stringify(errorFormat));
-      }
+    socket.send(JSON.stringify(errorFormat));
 
-      socket.send(JSON.stringify(errorFormat));
-    }
+    console.log(errorFormat);
   }
 }
 

@@ -6,7 +6,7 @@ import loadFilesService from "../services/load.files.service.js";
 import type { WebSocket } from "ws";
 import type { Delete, Insert } from "../websocket.types.js";
 
-async function loadFiles(client: WebSocket, roomId: string) {
+async function loadFiles(client: WebSocket, roomId: string, requestId: string) {
   connectionManager.checkAuth(client);
 
   const roomData = roomManager.requireRoomMember(client, roomId);
@@ -28,7 +28,12 @@ async function loadFiles(client: WebSocket, roomId: string) {
   client.send(JSON.stringify(message));
 }
 
-async function deleteOp(client: WebSocket, roomId: string, operation: Delete) {
+async function deleteOp(
+  client: WebSocket,
+  roomId: string,
+  operation: Delete,
+  requestId: string,
+) {
   connectionManager.checkAuth(client);
 
   roomManager.requireRoomMember(client, roomId);
@@ -46,7 +51,12 @@ async function deleteOp(client: WebSocket, roomId: string, operation: Delete) {
   });
 }
 
-async function insertOp(client: WebSocket, roomId: string, operation: Insert) {
+async function insertOp(
+  client: WebSocket,
+  roomId: string,
+  operation: Insert,
+  requestId: string,
+) {
   connectionManager.checkAuth(client);
 
   roomManager.requireRoomMember(client, roomId);
@@ -54,7 +64,9 @@ async function insertOp(client: WebSocket, roomId: string, operation: Insert) {
   const data = fileManager.insertOperation(operation);
 
   const message = {
-    type: "insert_operation",
+    type: "response",
+    requestId: requestId,
+    code: "insert_operation",
     fileId: operation.fileId,
     position: operation.position,
     inserted: operation.inserted,

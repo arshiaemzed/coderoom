@@ -9,21 +9,31 @@ type eventType =
   | "delete_operation"
   | "upload_file";
 
+type messageType = "request";
+
 type authEventType = "login";
 
 interface Event {
-  type: eventType;
-  room: string;
-  message?: string;
-  dx?: number;
-  dy?: number;
-  insert?: Insert;
-  delete?: Delete;
+  requestId: string;
+  type: messageType;
+  event: eventType;
+  data: {
+    room: string;
+    message?: string;
+    dx?: number;
+    dy?: number;
+    insert?: Insert;
+    delete?: Delete;
+  };
 }
 
 interface AuthEvent {
-  type: authEventType;
-  token: string;
+  requestId: string;
+  type: messageType;
+  event: authEventType;
+  data: {
+    token: string;
+  };
 }
 
 interface Client {
