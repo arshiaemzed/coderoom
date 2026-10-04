@@ -3,7 +3,6 @@ import eventRouter from "./event-router.js";
 import roomManager from "./room-manager.js";
 import connectionManager from "./connection-manager.js";
 import WebSocketError from "./websocket.error.js";
-import type { Client } from "./websocket.types.js";
 
 export function runWebSocketServer() {
   const server = new WebSocketServer({ port: 3002 });
