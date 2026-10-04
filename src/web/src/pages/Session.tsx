@@ -28,11 +28,10 @@ export function SessionScreen() {
 
     async function verifyAndJoin() {
       try {
-        console.log("pass 1");
         setRoomStatus("joining");
+
         await ws.joinRoom(roomId);
 
-        console.log("pass 2");
         setRoomStatus("joined");
       } catch (err: any) {
         const errorFormat = {

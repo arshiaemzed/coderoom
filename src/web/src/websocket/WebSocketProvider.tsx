@@ -27,10 +27,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
   async function connectToRoom(roomId: string): Promise<void> {
     try {
-      console.log("connectToRoom pass 1");
       // TODO: Fix hardcoded !
       await authWebSocket(user!.token);
-      console.log("connectToRoom pass 2");
 
       return new Promise((resolve, reject) => {
         if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
@@ -43,8 +41,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           resolve: resolve,
           reject: reject,
         });
-
-        console.log("promise ali");
 
         const message: WebSocketRequest = {
           type: "request",
@@ -139,10 +135,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         if (eventType === "error") {
           const errorObject = data.error;
 
-          console.log(data);
-
           if (!ok) {
-            console.log(requestId);
             const request = pendingRequests.current.get(requestId);
             request?.reject(errorObject.message);
           }

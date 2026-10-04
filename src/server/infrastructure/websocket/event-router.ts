@@ -126,7 +126,6 @@ async function eventRouter(socket: WebSocket, data: any) {
     };
 
     socket.send(JSON.stringify(errorFormat));
-    console.log(errorFormat);
   }
 }
 
