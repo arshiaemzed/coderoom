@@ -3,7 +3,6 @@ import connectionManager from "../connection-manager.js";
 import { WebSocket } from "ws";
 import authService from "../services/auth.service.js";
 import type { Client, WebSocketResponse } from "../websocket.types.js";
-import { connect } from "node:http2";
 
 async function auth(client: WebSocket, token: string, requestId: string) {
   if (connectionManager.get(client)) {
@@ -16,6 +15,9 @@ async function auth(client: WebSocket, token: string, requestId: string) {
 
   const user = clients.values().find((e) => e.userId == authSession.userId);
 
+  // Killing the other socket if a new socket connection is made
+  // for instnace if someone is logged in using your credentials and you log in
+  // that "someone" will get disconnected from the websocket server and you will connect
   if (user) {
     clients.forEach((v: Client, k: WebSocket) => {
       if (v.userId === authSession.userId) {
