@@ -58,6 +58,31 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     }
   }
 
+  function sendYjsUpdate(roomId: string, data: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
+        reject(new Error("You are not connected to the websocket server!"));
+      }
+
+      const requestId: string = crypto.randomUUID();
+
+      const message: WebSocketRequest = {
+        type: "request",
+        requestId: requestId,
+        event: "yjs_update",
+        data: { room: roomId, update: data },
+      };
+
+      pendingRequests.current.set(requestId, {
+        resolve: resolve,
+        reject: reject,
+      });
+
+      socketRef.current?.send(JSON.stringify(message));
+      console.log("sending update mssage");
+    });
+  }
+
   function authWebSocket(token: string): Promise<void> {
     try {
       return new Promise((resolve, reject) => {
@@ -124,6 +149,14 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             }
           }
 
+          if (action === "received_files") {
+            if (ok) {
+              const res = data.data;
+
+              console.log(res);
+            }
+          }
+
           if (action === "you_joined_room") {
             if (ok) {
               const request = pendingRequests.current.get(requestId);
@@ -166,7 +199,11 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
   return (
     <WebSocketContext
-      value={{ status: connectionStatus, joinRoom: connectToRoom }}
+      value={{
+        status: connectionStatus,
+        joinRoom: connectToRoom,
+        sendYjsUpdate: sendYjsUpdate,
+      }}
     >
       {children}
     </WebSocketContext>
