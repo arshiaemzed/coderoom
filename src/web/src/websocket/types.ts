@@ -5,6 +5,7 @@ type ConnectionStatus = "connected" | "disconnected" | "connecting";
 type WebSocketContextValue = {
   status: ConnectionStatus;
   joinRoom: Function;
+  sendYjsUpdate: Function;
 };
 
 type WebSocketProviderProps = {
