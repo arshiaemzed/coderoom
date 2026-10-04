@@ -3,9 +3,12 @@ import eventRouter from "./event-router.js";
 import roomManager from "./room-manager.js";
 import connectionManager from "./connection-manager.js";
 import WebSocketError from "./websocket.error.js";
+import type { Client } from "./websocket.types.js";
 
 export function runWebSocketServer() {
   const server = new WebSocketServer({ port: 3002 });
+
+  const alive = new Map<WebSocket, boolean>();
 
   server.on("listening", () => {
     console.log(`WebSocket server is listening on port 3002`);
@@ -24,6 +27,7 @@ export function runWebSocketServer() {
 
     socket.on("message", async (e) => {
       try {
+        alive.set(socket, true);
         await eventRouter(socket, e);
       } catch (error) {
         if (error instanceof WebSocketError) {
@@ -35,7 +39,26 @@ export function runWebSocketServer() {
       }
     });
 
+    socket.on("pong", () => {
+      alive.set(socket, true);
+    });
+
+    const hearbeat = setInterval(() => {
+      server.clients.forEach((socket: WebSocket) => {
+        if (alive.get(socket) === false) {
+          alive.delete(socket);
+          socket.terminate();
+          return;
+        }
+
+        alive.set(socket, false);
+
+        socket.ping();
+      });
+    }, 10000);
+
     socket.on("close", () => {
+      console.log("killed connection");
       const room = roomManager.findRoomBySocket(socket);
       connectionManager.remove(socket);
 
@@ -46,6 +69,8 @@ export function runWebSocketServer() {
       roomManager.removeMember(socket, room.id);
 
       room.cursors.delete(socket);
+
+      clearInterval(hearbeat);
     });
   });
 }
