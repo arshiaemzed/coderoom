@@ -51,11 +51,13 @@ async function eventRouter(socket: WebSocket, data: any) {
             userEvent.data.room,
             userEvent.requestId,
           );
+
           await fileHandler.loadFiles(
             socket,
             userEvent.data.room,
             userEvent.requestId,
           );
+
           break;
         case "leave_room":
           await roomHandler.checkRoomAndLeave(
@@ -64,30 +66,7 @@ async function eventRouter(socket: WebSocket, data: any) {
             userEvent.requestId,
           );
           break;
-        case "insert_operation":
-          if (!userEvent.data.insert) {
-            break;
-          }
-
-          await fileHandler.insertOp(
-            socket,
-            userEvent.data.room,
-            userEvent.data.insert,
-            userEvent.requestId,
-          );
-          break;
-        case "delete_operation":
-          if (!userEvent.data.delete) {
-            break;
-          }
-
-          await fileHandler.deleteOp(
-            socket,
-            userEvent.data.room,
-            userEvent.data.delete,
-            userEvent.requestId,
-          );
-
+        case "yjs_update":
           break;
         case "send_message":
           if (!userEvent.data.message) {
