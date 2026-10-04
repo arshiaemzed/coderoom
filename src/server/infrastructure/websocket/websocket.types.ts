@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import type { DatabaseRoom, RoomFile } from "../../modules/rooms/rooms.type.js";
+
 type eventType =
   | "join_room"
   | "leave_room"
@@ -7,7 +7,9 @@ type eventType =
   | "move_cursor"
   | "insert_operation"
   | "delete_operation"
-  | "upload_file";
+  | "upload_file"
+  | "yjs_update"
+  | "load_files";
 
 type messageType = "request";
 
@@ -22,8 +24,6 @@ interface Event {
     message?: string;
     dx?: number;
     dy?: number;
-    insert?: Insert;
-    delete?: Delete;
   };
 }
 
@@ -70,17 +70,6 @@ interface Message {
   message: string;
 }
 
-interface Insert {
-  fileId: string;
-  position: number;
-  inserted: string;
-}
-
-interface Delete {
-  fileId: string;
-  position: number;
-}
-
 interface WebSocketResponse {
   type: string;
   requestId: string;
@@ -90,8 +79,6 @@ interface WebSocketResponse {
 }
 
 export type {
-  Insert,
-  Delete,
   Event,
   AuthEvent,
   Client,
