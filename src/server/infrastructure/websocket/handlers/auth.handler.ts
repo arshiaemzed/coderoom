@@ -2,7 +2,8 @@ import type { AuthSession } from "../../../modules/auth/auth.types.js";
 import connectionManager from "../connection-manager.js";
 import { WebSocket } from "ws";
 import authService from "../services/auth.service.js";
-import type { WebSocketResponse } from "../websocket.types.js";
+import type { Client, WebSocketResponse } from "../websocket.types.js";
+import { connect } from "node:http2";
 
 async function auth(client: WebSocket, token: string, requestId: string) {
   if (connectionManager.get(client)) {
@@ -16,7 +17,12 @@ async function auth(client: WebSocket, token: string, requestId: string) {
   const user = clients.values().find((e) => e.userId == authSession.userId);
 
   if (user) {
-    throw new Error("Somebody is already logged in using your credentials.");
+    clients.forEach((v: Client, k: WebSocket) => {
+      if (v.userId === authSession.userId) {
+        connectionManager.remove(k);
+        k.close();
+      }
+    });
   }
 
   connectionManager.add(client, {
