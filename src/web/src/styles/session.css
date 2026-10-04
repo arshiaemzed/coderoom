@@ -1,0 +1,29 @@
+.session-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.session-coderoom {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.session-disconnect-btn {
+  padding: 7px 12px;
+
+  background: transparent;
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border);
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.session-disconnect-btn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
