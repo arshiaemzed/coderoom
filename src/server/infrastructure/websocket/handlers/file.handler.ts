@@ -22,6 +22,7 @@ async function loadFiles(client: WebSocket, roomId: string, requestId: string) {
     requestId: requestId,
     success: true,
     data: {
+      room: roomId,
       files: files,
     },
   };
