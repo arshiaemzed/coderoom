@@ -1,6 +1,12 @@
 import type { RoomFile } from "../rooms/rooms.type.js";
 import db from "../../infrastructure/postgres/pool.js";
 
+async function getAllFiles() {
+  const query = await db.query("SELECT * FROM room_files");
+
+  return query.rows;
+}
+
 async function uploadFile(
   userId: string,
   roomId: string,
@@ -73,4 +79,5 @@ export default {
   uploadFile,
   getSpecificFile,
   getRoomFiles,
+  getAllFiles,
 };

@@ -6,6 +6,7 @@ import type {
   WebSocketRequest,
 } from "./types";
 import { WebSocketContext } from "./WebSocketContext";
+import * as Y from "yjs";
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const socketRef = useRef<WebSocket | null>(null);
@@ -23,7 +24,25 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     >
   >(new Map());
 
+  const roomDocuments = useRef<Map<string, Y.Doc>>(new Map());
+
+  const [files, setFiles] = useState<Map<string, string>>(new Map());
+
   const { status, user } = useAuth();
+
+  function getRoomDocument(roomId: string): Y.Doc {
+    const doc = roomDocuments.current.get(roomId);
+
+    if (doc) {
+      return doc;
+    }
+
+    const newDoc = new Y.Doc();
+
+    roomDocuments.current.set(roomId, newDoc);
+
+    return newDoc;
+  }
 
   async function connectToRoom(roomId: string): Promise<void> {
     try {
@@ -133,14 +152,14 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       }
 
       function handleMessage(ev: MessageEvent<any>) {
-        const data = JSON.parse(ev["data"]);
+        const response = JSON.parse(ev["data"]);
 
-        const eventType = data.type;
-        const ok = data.success;
-        const requestId = data.requestId;
+        const eventType = response.type;
+        const ok = response.success;
+        const requestId = response.requestId;
 
         if (eventType === "response") {
-          const action = data.action;
+          const action = response.action;
 
           if (action === "login") {
             if (ok) {
@@ -151,9 +170,28 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
           if (action === "received_files") {
             if (ok) {
-              const res = data.data;
+              const data = response.data;
 
-              console.log(res);
+              const roomId = data.room;
+
+              const doc = getRoomDocument(roomId);
+
+              const decodedState = base64ToUint8Array(data.state);
+
+              Y.applyUpdate(doc, decodedState);
+
+              roomDocuments.current.set(roomId, doc);
+
+              const files = data.files;
+
+              let roomFiles: Map<string, string> = new Map();
+
+              for (let i = 0; i < files.length; i++) {
+                roomFiles.set(files[i].id, files[i].name);
+              }
+
+              console.log(roomFiles);
+              setFiles(roomFiles);
             }
           }
 
@@ -166,7 +204,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         }
 
         if (eventType === "error") {
-          const errorObject = data.error;
+          const errorObject = response.error;
 
           if (!ok) {
             const request = pendingRequests.current.get(requestId);
@@ -203,9 +241,17 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         status: connectionStatus,
         joinRoom: connectToRoom,
         sendYjsUpdate: sendYjsUpdate,
+        getRoomDocument: getRoomDocument,
+        files: files,
       }}
     >
       {children}
     </WebSocketContext>
   );
+}
+
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binary = atob(base64);
+
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }

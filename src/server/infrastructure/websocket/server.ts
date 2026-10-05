@@ -3,14 +3,25 @@ import eventRouter from "./event-router.js";
 import roomManager from "./room-manager.js";
 import connectionManager from "./connection-manager.js";
 import WebSocketError from "./websocket.error.js";
+import { getAllFiles } from "./services/get.all.files.service.js";
+import fileManager from "./file-manager.js";
+import { getAllRooms } from "./services/get.all.rooms.service.js";
 
 export function runWebSocketServer() {
   const server = new WebSocketServer({ port: 3002 });
 
   const alive = new Map<WebSocket, boolean>();
 
-  server.on("listening", () => {
+  server.on("listening", async () => {
     console.log(`WebSocket server is listening on port 3002`);
+
+    const rooms = await getAllRooms();
+
+    await roomManager.initializeRooms(rooms);
+
+    const files = await getAllFiles();
+
+    await fileManager.initializeDocs(files);
   });
 
   server.on("error", (error) => {
@@ -22,7 +33,7 @@ export function runWebSocketServer() {
   });
 
   server.on("connection", (socket: WebSocket) => {
-    console.log("client connected");
+    console.log("Client connected");
 
     socket.on("message", async (e) => {
       try {

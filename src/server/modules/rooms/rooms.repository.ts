@@ -1,6 +1,12 @@
 import type { DatabaseRoom } from "./rooms.type.js";
 import db from "../../infrastructure/postgres/pool.js";
 
+async function getAllRooms() {
+  const query = await db.query("SELECT * FROM rooms");
+
+  return query.rows;
+}
+
 async function createRoom(
   userId: string,
   name: string | undefined,
@@ -112,4 +118,5 @@ export default {
   doesRoomExists,
   isOwnerOfTheRoom,
   getUserRooms,
+  getAllRooms,
 };

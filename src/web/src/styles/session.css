@@ -27,3 +27,14 @@
   color: var(--text);
   background: var(--surface-hover);
 }
+
+.editor-and-files-sidebar-div {
+  display: flex;
+}
+
+.editor {
+  flex: 1;
+}
+.file-name-side-bar {
+  flex: 1;
+}

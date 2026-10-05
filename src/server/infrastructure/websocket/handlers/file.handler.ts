@@ -5,6 +5,7 @@ import roomManager from "../room-manager.js";
 import loadFilesService from "../services/load.files.service.js";
 import type { WebSocket } from "ws";
 import type { WebSocketResponse } from "../websocket.types.js";
+import * as Y from "yjs";
 
 async function loadFiles(client: WebSocket, roomId: string, requestId: string) {
   connectionManager.checkAuth(client);
@@ -16,6 +17,12 @@ async function loadFiles(client: WebSocket, roomId: string, requestId: string) {
     roomData.member.userId,
   );
 
+  const roomDoc = fileManager.getRoomDocument(roomId);
+
+  const state: Uint8Array = Y.encodeStateAsUpdate(roomDoc);
+
+  const encodedState = Buffer.from(state).toString("base64");
+
   const message: WebSocketResponse = {
     type: "response",
     action: "received_files",
@@ -23,13 +30,13 @@ async function loadFiles(client: WebSocket, roomId: string, requestId: string) {
     success: true,
     data: {
       room: roomId,
-      files: files,
+      files: files.map((file) => ({
+        id: file.id,
+        name: file.fileName,
+      })),
+      state: encodedState,
     },
   };
-
-  files.forEach((v: RoomFile) => {
-    fileManager.addFile(v.id, v.roomId, v.fileName, v.content);
-  });
 
   client.send(JSON.stringify(message));
 }

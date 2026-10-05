@@ -8,9 +8,14 @@ import * as Y from "yjs";
 
 type RoomStatus = "joined" | "joining" | "error" | "connecting";
 
-const yDoc = new Y.Doc();
+type CodeEditorProps = {
+  roomId: string;
+  fileId: string;
+};
 
-const yText = yDoc.getText("coderoom");
+type FilesSideBarProps = {
+  onClick: Function;
+};
 
 function uint8ArrayToBase64(data: Uint8Array) {
   let binary = "";
@@ -32,6 +37,8 @@ export function SessionScreen() {
   const [roomStatus, setRoomStatus] = useState<RoomStatus>("joining");
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [file, setFile] = useState<string | null>();
 
   useEffect(() => {
     if (!roomId) {
@@ -81,7 +88,10 @@ export function SessionScreen() {
     return (
       <div>
         <SessionHeader />
-        <CodeEditor />
+        <div className="editor-and-files-sidebar-div">
+          <FilesSideBar onClick={setFile} />
+          {file && <CodeEditor key={file} fileId={file} roomId={roomId!} />}
+        </div>
       </div>
     );
   }
@@ -107,35 +117,43 @@ function SessionHeader() {
   );
 }
 
-function CodeEditor() {
+function FilesSideBar({ onClick }: FilesSideBarProps) {
   const ws = useWebSocket();
 
+  return (
+    <div className="file-name-side-bar">
+      {[...ws.files.entries()].map(([key, value]) => (
+        <button onClick={() => onClick(key)} key={key}>
+          {value}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function CodeEditor({ roomId, fileId }: CodeEditorProps) {
+  const ws = useWebSocket();
+
+  console.log("hey");
+  console.log(`fileId: ${fileId}`);
+
   function handleMount(editor: any) {
+    const yDoc = ws.getRoomDocument(roomId);
+
+    const yText = yDoc.getText(fileId);
+
     const model = editor.getModel();
+
+    console.log(yText.toString());
 
     new MonacoBinding(yText, model, new Set([editor]));
   }
 
-  async function handleUpdate(update: Uint8Array) {
-    const encodedUpdate = uint8ArrayToBase64(update);
-
-    ws.sendYjsUpdate(encodedUpdate);
-  }
-
-  useEffect(() => {
-    yDoc.on("update", handleUpdate);
-
-    return () => {
-      yDoc.off("update", handleUpdate);
-    };
-  }, [ws]);
-
   return (
-    <div>
+    <div className="editor">
       <Editor
         height="90vh"
         defaultLanguage="javascript"
-        defaultValue="// Hello welcome to coderoom"
         theme="vs-dark"
         onMount={handleMount}
       />

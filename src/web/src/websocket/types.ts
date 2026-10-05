@@ -6,6 +6,8 @@ type WebSocketContextValue = {
   status: ConnectionStatus;
   joinRoom: Function;
   sendYjsUpdate: Function;
+  getRoomDocument: Function;
+  files: Map<string, string>;
 };
 
 type WebSocketProviderProps = {

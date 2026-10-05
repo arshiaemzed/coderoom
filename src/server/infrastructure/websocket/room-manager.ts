@@ -5,6 +5,25 @@ import type { DatabaseRoom } from "../../modules/rooms/rooms.type.js";
 
 let rooms: Array<Room> = [];
 
+function initializeRooms(rooms: any) {
+  for (let i = 0; i < rooms.length; i++) {
+    const localRoom: Room | undefined = findRoomById(rooms[i].id);
+
+    if (!localRoom) {
+      const newRoom = {
+        id: rooms[i].id,
+        name: rooms[i].name,
+        members: new Map<WebSocket, Client>(),
+        cursors: new Map<WebSocket, Cursor>(),
+        messages: new Array<Message>(),
+        owner: rooms[i].user_id,
+      };
+
+      addNewRoom(newRoom);
+    }
+  }
+}
+
 function join(client: WebSocket, user: Client, data: DatabaseRoom): Room {
   const localRoom: Room | undefined = findRoomById(data.id);
 
@@ -220,4 +239,5 @@ export default {
   updateCursor,
   join,
   leave,
+  initializeRooms,
 };
