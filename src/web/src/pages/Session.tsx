@@ -122,8 +122,19 @@ function FilesSideBar({ onClick }: FilesSideBarProps) {
 function CodeEditor({ roomId, fileId }: CodeEditorProps) {
   const ws = useWebSocket();
 
-  console.log("hey");
-  console.log(`fileId: ${fileId}`);
+  useEffect(() => {
+    const yDoc = ws.getRoomDocument(roomId);
+
+    function handleUpdate(value: Uint8Array) {
+      ws.sendYjsUpdate(roomId, value);
+    }
+
+    yDoc.on("update", handleUpdate);
+
+    return () => {
+      yDoc.off("update", handleUpdate);
+    };
+  });
 
   function handleMount(editor: any) {
     const yDoc = ws.getRoomDocument(roomId);
