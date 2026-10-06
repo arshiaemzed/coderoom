@@ -134,6 +134,10 @@ function CodeEditor({ roomId, fileId }: CodeEditorProps) {
 
     console.log(yText.toString());
 
+    yDoc.on("update", (value) => {
+      ws.sendYjsUpdate(roomId, value);
+    });
+
     new MonacoBinding(yText, model, new Set([editor]));
   }
 
