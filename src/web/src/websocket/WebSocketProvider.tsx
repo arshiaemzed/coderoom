@@ -7,6 +7,7 @@ import type {
 } from "./types";
 import { WebSocketContext } from "./WebSocketContext";
 import * as Y from "yjs";
+import helper from "../helpers/helper";
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const socketRef = useRef<WebSocket | null>(null);
@@ -89,7 +90,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         type: "request",
         requestId: requestId,
         event: "yjs_update",
-        data: { room: roomId, update: data },
+        data: { room: roomId, update: helper.uInt8ArrayToBase64(data) },
       };
 
       pendingRequests.current.set(requestId, {
@@ -168,6 +169,21 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             }
           }
 
+          if (action === "doc_updated") {
+            if (ok) {
+              const data = response.data;
+              const update = data.update;
+
+              const roomId = data.room;
+
+              const doc = getRoomDocument(roomId);
+
+              const encodedUpdate = helper.base64ToUint8Array(update);
+
+              Y.applyUpdate(doc, encodedUpdate);
+            }
+          }
+
           if (action === "received_files") {
             if (ok) {
               const data = response.data;
@@ -176,7 +192,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
               const doc = getRoomDocument(roomId);
 
-              const decodedState = base64ToUint8Array(data.state);
+              const decodedState = helper.base64ToUint8Array(data.state);
 
               Y.applyUpdate(doc, decodedState);
 
@@ -248,10 +264,4 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       {children}
     </WebSocketContext>
   );
-}
-
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binary = atob(base64);
-
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
