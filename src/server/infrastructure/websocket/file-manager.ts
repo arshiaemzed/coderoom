@@ -8,9 +8,9 @@ let docs: Map<string, Y.Doc> = new Map();
 let files: Array<File> = [];
 
 function initializeDocs(files: any) {
-  const yDoc = new Y.Doc();
-
   for (let i = 0; i < files.length; i++) {
+    const yDoc = getRoomDocument(files[i].room_id);
+
     docs.set(files[i].room_id, yDoc);
 
     const yText = yDoc.getText(files[i].id);
