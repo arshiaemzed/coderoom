@@ -51,7 +51,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       await authWebSocket(user!.token);
 
       return new Promise((resolve, reject) => {
-        if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
+        const socket = socketRef.current;
+
+        if (!socket || socket?.readyState !== WebSocket.OPEN) {
           reject(new Error("You are not connected to the websocket server!"));
         }
 
@@ -80,7 +82,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
   function sendYjsUpdate(roomId: string, data: Uint8Array): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
+      const socket = socketRef.current;
+
+      if (!socket || socket?.readyState !== WebSocket.OPEN) {
         reject(new Error("You are not connected to the websocket server!"));
       }
 
@@ -105,7 +109,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   function authWebSocket(token: string): Promise<void> {
     try {
       return new Promise((resolve, reject) => {
-        if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
+        const socket = socketRef.current;
+        if (!socket || socket?.readyState !== WebSocket.OPEN) {
           reject(new Error("You are not connected to the websocket server!"));
         }
 
