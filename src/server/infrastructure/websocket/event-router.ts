@@ -77,6 +77,7 @@ async function eventRouter(socket: WebSocket, data: any) {
             userEvent.data.room,
             userEvent.data.update,
           );
+          break;
         case "send_message":
           if (!userEvent.data.message) {
             break;
