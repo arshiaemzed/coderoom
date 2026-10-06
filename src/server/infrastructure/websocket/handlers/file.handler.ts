@@ -4,10 +4,11 @@ import fileManager from "../file-manager.js";
 import roomManager from "../room-manager.js";
 import loadFilesService from "../services/load.files.service.js";
 import type { WebSocket } from "ws";
-import type { WebSocketResponse } from "../websocket.types.js";
+import type { Client, WebSocketResponse } from "../websocket.types.js";
 import * as Y from "yjs";
+import helper from "../../../helpers/helper.js";
 
-async function loadFiles(client: WebSocket, roomId: string, requestId: string) {
+async function loadFiles(client: WebSocket, requestId: string, roomId: string) {
   connectionManager.checkAuth(client);
 
   const roomData = roomManager.requireRoomMember(client, roomId);
@@ -41,6 +42,40 @@ async function loadFiles(client: WebSocket, roomId: string, requestId: string) {
   client.send(JSON.stringify(message));
 }
 
+function updateDoc(
+  client: WebSocket,
+  requestId: string,
+  roomId: string,
+  update: string,
+) {
+  connectionManager.checkAuth(client);
+
+  const roomData = roomManager.requireRoomMember(client, roomId);
+
+  const yDoc: Y.Doc = fileManager.getRoomDocument(roomData.room.id);
+
+  const encodedData = helper.base64ToUint8Array(update);
+
+  Y.applyUpdate(yDoc, encodedData);
+
+  const message: WebSocketResponse = {
+    type: "response",
+    action: "doc_updated",
+    requestId: requestId,
+    success: true,
+    data: {
+      room: roomId,
+      update: update,
+    },
+  };
+  const clients = connectionManager.getAll();
+
+  clients.forEach((client: Client, socket: WebSocket) => {
+    socket.send(JSON.stringify(message));
+  });
+}
+
 export default {
   loadFiles,
+  updateDoc,
 };
