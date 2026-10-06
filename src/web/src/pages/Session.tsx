@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { MonacoBinding } from "y-monaco";
 import Editor from "@monaco-editor/react";
 
-import * as Y from "yjs";
-
 type RoomStatus = "joined" | "joining" | "error" | "connecting";
 
 type CodeEditorProps = {
@@ -16,16 +14,6 @@ type CodeEditorProps = {
 type FilesSideBarProps = {
   onClick: Function;
 };
-
-function uint8ArrayToBase64(data: Uint8Array) {
-  let binary = "";
-
-  for (const byte of data) {
-    binary += String.fromCharCode(byte);
-  }
-
-  return btoa(binary);
-}
 
 export function SessionScreen() {
   const params = useParams();
