@@ -24,6 +24,7 @@ interface Event {
     message?: string;
     dx?: number;
     dy?: number;
+    update?: string;
   };
 }
 
