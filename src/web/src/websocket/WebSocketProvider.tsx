@@ -99,7 +99,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       });
 
       socketRef.current?.send(JSON.stringify(message));
-      console.log("sending update mssage");
     });
   }
 
@@ -181,6 +180,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
               const encodedUpdate = helper.base64ToUint8Array(update);
 
               Y.applyUpdate(doc, encodedUpdate);
+              const request = pendingRequests.current.get(requestId);
+              request?.resolve();
+              pendingRequests.current.delete(requestId);
             }
           }
 
@@ -188,11 +190,13 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             if (ok) {
               const data = response.data;
 
-              const roomId = data.room;
+              const roomId: string = data.room;
 
-              const doc = getRoomDocument(roomId);
+              const doc: Y.Doc = getRoomDocument(roomId);
 
-              const decodedState = helper.base64ToUint8Array(data.state);
+              const decodedState: Uint8Array = helper.base64ToUint8Array(
+                data.state,
+              );
 
               Y.applyUpdate(doc, decodedState);
 
@@ -206,7 +210,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 roomFiles.set(files[i].id, files[i].name);
               }
 
-              console.log(roomFiles);
               setFiles(roomFiles);
             }
           }
