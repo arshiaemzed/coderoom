@@ -54,8 +54,8 @@ async function eventRouter(socket: WebSocket, data: any) {
 
           await fileHandler.loadFiles(
             socket,
-            userEvent.data.room,
             userEvent.requestId,
+            userEvent.data.room,
           );
 
           break;
@@ -67,7 +67,16 @@ async function eventRouter(socket: WebSocket, data: any) {
           );
           break;
         case "yjs_update":
-          break;
+          if (!userEvent.data.update) {
+            break;
+          }
+
+          await fileHandler.updateDoc(
+            socket,
+            userEvent.requestId,
+            userEvent.data.room,
+            userEvent.data.update,
+          );
         case "send_message":
           if (!userEvent.data.message) {
             break;
