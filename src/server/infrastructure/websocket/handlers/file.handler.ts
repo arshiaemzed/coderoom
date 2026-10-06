@@ -3,8 +3,8 @@ import connectionManager from "../connection-manager.js";
 import fileManager from "../file-manager.js";
 import roomManager from "../room-manager.js";
 import loadFilesService from "../services/load.files.service.js";
-import type { WebSocket } from "ws";
-import type { Client, WebSocketResponse } from "../websocket.types.js";
+import { WebSocket } from "ws";
+import type { Client, Room, WebSocketResponse } from "../websocket.types.js";
 import * as Y from "yjs";
 import helper from "../../../helpers/helper.js";
 
@@ -68,9 +68,16 @@ function updateDoc(
       update: update,
     },
   };
-  const clients = connectionManager.getAll();
 
-  clients.forEach((client: Client, socket: WebSocket) => {
+  roomData.room.members.forEach((value: Client, socket: WebSocket) => {
+    if (socket === client) {
+      return;
+    }
+
+    if (socket.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
     socket.send(JSON.stringify(message));
   });
 }
