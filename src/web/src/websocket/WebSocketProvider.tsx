@@ -77,7 +77,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     }
   }
 
-  function sendYjsUpdate(roomId: string, data: any): Promise<void> {
+  function sendYjsUpdate(roomId: string, data: Uint8Array): Promise<void> {
     return new Promise((resolve, reject) => {
       if (socketRef.current?.readyState !== WebSocket.OPEN || !socketRef) {
         reject(new Error("You are not connected to the websocket server!"));
