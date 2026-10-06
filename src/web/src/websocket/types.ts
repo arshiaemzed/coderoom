@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import * as Y from "yjs";
 
 type ConnectionStatus = "connected" | "disconnected" | "connecting";
 
@@ -6,7 +7,7 @@ type WebSocketContextValue = {
   status: ConnectionStatus;
   joinRoom: Function;
   sendYjsUpdate: Function;
-  getRoomDocument: Function;
+  getRoomDocument: (roomId: string) => Y.Doc;
   files: Map<string, string>;
 };
 
