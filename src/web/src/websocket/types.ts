@@ -6,7 +6,7 @@ type ConnectionStatus = "connected" | "disconnected" | "connecting";
 type WebSocketContextValue = {
   status: ConnectionStatus;
   joinRoom: Function;
-  sendYjsUpdate: Function;
+  sendYjsUpdate: (roomId: string, data: Uint8Array) => Promise<void>;
   getRoomDocument: (roomId: string) => Y.Doc;
   files: Map<string, string>;
 };
