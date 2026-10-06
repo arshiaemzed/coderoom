@@ -55,6 +55,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
         if (!socket || socket?.readyState !== WebSocket.OPEN) {
           reject(new Error("You are not connected to the websocket server!"));
+          return;
         }
 
         const requestId: string = crypto.randomUUID();
@@ -86,6 +87,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       if (!socket || socket?.readyState !== WebSocket.OPEN) {
         reject(new Error("You are not connected to the websocket server!"));
+        return;
       }
 
       const requestId: string = crypto.randomUUID();
@@ -112,6 +114,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         const socket = socketRef.current;
         if (!socket || socket?.readyState !== WebSocket.OPEN) {
           reject(new Error("You are not connected to the websocket server!"));
+          return;
         }
 
         const requestId: string = crypto.randomUUID();
