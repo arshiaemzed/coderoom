@@ -3,12 +3,23 @@ import { Navigate, Route, Routes } from "react-router";
 import Rooms from "./pages/Rooms";
 import { useAuth } from "./auth/AuthContext";
 import { SessionScreen } from "./pages/Session";
+import { useWebSocket } from "./websocket/useWebSocket";
 
 function App() {
-  const { status } = useAuth();
+  const ws = useWebSocket();
 
-  if (status === "loading") {
-    return <p>Loading ...</p>;
+  const auth = useAuth();
+
+  if (ws.status === "connecting") {
+    return <p>Connecting to the server</p>;
+  }
+
+  if (ws.status === "disconnected") {
+    return <p>Failed to reach the server.</p>;
+  }
+
+  if (auth.status === "loading") {
+    return <p>Authenticating ...</p>;
   }
 
   return (
