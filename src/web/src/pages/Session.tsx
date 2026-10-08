@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { useWebSocket } from "../websocket/useWebSocket";
 import { useEffect, useState } from "react";
 import { MonacoBinding } from "y-monaco";
