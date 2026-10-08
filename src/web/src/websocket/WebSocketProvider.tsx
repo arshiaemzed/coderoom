@@ -8,6 +8,9 @@ import type {
 import { WebSocketContext } from "./WebSocketContext";
 import * as Y from "yjs";
 import helper from "../helpers/helper";
+import { useNavigate } from "react-router";
+
+const REMOTE_UPADTE = Symbol("REMOTE_UPDATE");
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const socketRef = useRef<WebSocket | null>(null);
@@ -25,14 +28,22 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     >
   >(new Map());
 
-  const roomDocuments = useRef<Map<string, Y.Doc>>(new Map());
+  const roomDocument = useRef<Y.Doc>(new Y.Doc());
 
   const [files, setFiles] = useState<Map<string, string>>(new Map());
 
   const { status, user } = useAuth();
 
-  function getRoomDocument(roomId: string): Y.Doc {
-    const doc = roomDocuments.current.get(roomId);
+  const roomRef = useRef<string | null>(null);
+
+  const authWebSocketRef = useRef<boolean>(false);
+
+  const joinedRef = useRef<boolean>(false);
+
+  const navigate = useNavigate();
+
+  function getRoomDocument(): Y.Doc {
+    const doc = roomDocument.current;
 
     if (doc) {
       return doc;
@@ -40,17 +51,67 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
     const newDoc = new Y.Doc();
 
-    roomDocuments.current.set(roomId, newDoc);
+    roomDocument.current = newDoc;
 
     return newDoc;
   }
 
-  async function connectToRoom(roomId: string): Promise<void> {
+  function handleUpdate(value: Uint8Array, origin: any) {
+    const roomId: string | null = roomRef.current;
+
+    if (origin === REMOTE_UPADTE) {
+      return;
+    }
+
+    if (!roomId) {
+      return;
+    }
+
+    sendYjsUpdate(roomId, value);
+  }
+
+  async function leaveRoom(roomId: string): Promise<void> {
+    try {
+      return new Promise<void>((resolve, reject) => {
+        const socket = socketRef.current;
+        if (!socket || socket?.readyState !== WebSocket.OPEN) {
+          reject(new Error("You are not connected to the websocket server!"));
+          return;
+        }
+
+        const requestId = crypto.randomUUID();
+
+        const message: WebSocketRequest = {
+          type: "request",
+          event: "leave_room",
+          requestId: requestId,
+          data: {
+            room: roomId,
+          },
+        };
+
+        pendingRequests.current.set(requestId, {
+          reject: reject,
+          resolve: resolve,
+        });
+
+        socket.send(JSON.stringify(message));
+      });
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async function joinRoom(roomId: string): Promise<void> {
+    if (joinedRef.current === true) {
+      return Promise.resolve();
+    }
+
     try {
       // TODO: Fix hardcoded !
       await authWebSocket(user!.token);
 
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         const socket = socketRef.current;
 
         if (!socket || socket?.readyState !== WebSocket.OPEN) {
@@ -74,7 +135,11 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           },
         };
 
-        socketRef.current?.send(JSON.stringify(message));
+        socket.send(JSON.stringify(message));
+      }).then(() => {
+        const doc = getRoomDocument();
+
+        doc.on("update", handleUpdate);
       });
     } catch (error) {
       throw error;
@@ -109,6 +174,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   }
 
   function authWebSocket(token: string): Promise<void> {
+    if (authWebSocketRef.current === true) {
+      return Promise.resolve();
+    }
+
     try {
       return new Promise((resolve, reject) => {
         const socket = socketRef.current;
@@ -146,6 +215,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       const ws = new WebSocket("ws://localhost:3002");
 
+      const doc: Y.Doc = getRoomDocument();
+
       socketRef.current = ws;
 
       function handleOpen() {
@@ -155,8 +226,12 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       function handleClose() {
         socketRef.current = null;
+        roomRef.current = null;
+        authWebSocketRef.current = false;
+        joinedRef.current = false;
         setConnectionStatus("disconnected");
         console.log("Disconnected from websocket server.");
+        ws.close();
       }
 
       function handleMessage(ev: MessageEvent<any>) {
@@ -173,21 +248,41 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             if (ok) {
               const request = pendingRequests.current.get(requestId);
               request?.resolve();
+              authWebSocketRef.current = true;
+            }
+          }
+
+          if (action === "you_joined_room") {
+            if (ok) {
+              const request = pendingRequests.current.get(requestId);
+              request?.resolve();
+              roomRef.current = response.data.roomId;
+              joinedRef.current = true;
+            }
+          }
+
+          if (action === "leaved_room") {
+            if (ok) {
+              const request = pendingRequests.current.get(requestId);
+              request?.resolve();
+              roomRef.current = null;
+              joinedRef.current = false;
+              navigate("/rooms", { replace: true });
             }
           }
 
           if (action === "doc_updated") {
             if (ok) {
+              console.log("doc updated received");
               const data = response.data;
               const update = data.update;
 
-              const roomId = data.room;
-
-              const doc = getRoomDocument(roomId);
-
               const encodedUpdate = helper.base64ToUint8Array(update);
 
-              Y.applyUpdate(doc, encodedUpdate);
+              console.log("doc updated");
+
+              Y.applyUpdate(doc, encodedUpdate, REMOTE_UPADTE);
+
               const request = pendingRequests.current.get(requestId);
               request?.resolve();
               pendingRequests.current.delete(requestId);
@@ -198,17 +293,11 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             if (ok) {
               const data = response.data;
 
-              const roomId: string = data.room;
-
-              const doc: Y.Doc = getRoomDocument(roomId);
-
               const decodedState: Uint8Array = helper.base64ToUint8Array(
                 data.state,
               );
 
-              Y.applyUpdate(doc, decodedState);
-
-              roomDocuments.current.set(roomId, doc);
+              Y.applyUpdate(doc, decodedState, REMOTE_UPADTE);
 
               const files = data.files;
 
@@ -221,13 +310,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
               setFiles(roomFiles);
             }
           }
-
-          if (action === "you_joined_room") {
-            if (ok) {
-              const request = pendingRequests.current.get(requestId);
-              request?.resolve();
-            }
-          }
         }
 
         if (eventType === "error") {
@@ -236,6 +318,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           if (!ok) {
             const request = pendingRequests.current.get(requestId);
             request?.reject(errorObject.message);
+            roomRef.current = null;
           }
         }
       }
@@ -253,6 +336,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
         ws.removeEventListener("message", handleMessage);
 
+        doc.off("update", handleUpdate);
+
         if (socketRef.current === ws) {
           socketRef.current = null;
         }
@@ -266,8 +351,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     <WebSocketContext
       value={{
         status: connectionStatus,
-        joinRoom: connectToRoom,
-        sendYjsUpdate: sendYjsUpdate,
+        joinRoom: joinRoom,
+        leaveRoom: leaveRoom,
         getRoomDocument: getRoomDocument,
         files: files,
       }}
