@@ -10,6 +10,8 @@ authRoute.post("/auth/signup", signUpMiddleware, authController.signUp);
 
 authRoute.post("/auth/login", loginMiddleware, authController.login);
 
+authRoute.post("/auth/logout", cookieMiddleware, authController.logout);
+
 authRoute.get("/auth/me", cookieMiddleware, authController.authMe);
 
 export default authRoute;

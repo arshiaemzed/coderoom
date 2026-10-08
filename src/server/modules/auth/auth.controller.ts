@@ -25,12 +25,22 @@ async function login(req: Request, res: Response) {
   return res.status(200).json(newSession);
 }
 
-async function authMe(req: Request, res: Response) {
-  const tokenHash = req.cookies.session;
+async function logout(req: Request, res: Response) {
+  res.clearCookie("session", {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+  });
 
-  const session = await authService.authMe(tokenHash);
+  return res.status(200).json({ message: "Logged out successfully" });
+}
+
+async function authMe(req: Request, res: Response) {
+  const rawToken = req.cookies.session;
+
+  const session = await authService.authMe(rawToken);
 
   return res.status(200).json(session);
 }
 
-export default { signUp, login, authMe };
+export default { signUp, login, authMe, logout };
