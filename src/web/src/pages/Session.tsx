@@ -1,8 +1,9 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useWebSocket } from "../websocket/useWebSocket";
 import { useEffect, useState } from "react";
 import { MonacoBinding } from "y-monaco";
 import Editor from "@monaco-editor/react";
+import * as Y from "yjs";
 
 type RoomStatus = "joined" | "joining" | "error" | "connecting";
 
@@ -13,6 +14,10 @@ type CodeEditorProps = {
 
 type FilesSideBarProps = {
   onClick: Function;
+};
+
+type SessionHeaderProps = {
+  roomId: string;
 };
 
 export function SessionScreen() {
@@ -34,13 +39,12 @@ export function SessionScreen() {
       return;
     }
 
-    if (ws.status !== "connected") {
-      setRoomStatus("connecting");
-      return;
-    }
-
     async function verifyAndJoin() {
       try {
+        if (!roomId) {
+          return;
+        }
+
         setRoomStatus("joining");
 
         await ws.joinRoom(roomId);
@@ -75,7 +79,7 @@ export function SessionScreen() {
   if (roomStatus === "joined") {
     return (
       <div>
-        <SessionHeader />
+        <SessionHeader roomId={roomId!} />
         <div className="editor-and-files-sidebar-div">
           <FilesSideBar onClick={setFile} />
           {file && <CodeEditor key={file} fileId={file} roomId={roomId!} />}
@@ -89,7 +93,7 @@ export function SessionScreen() {
   }
 }
 
-function SessionHeader() {
+function SessionHeader({ roomId }: SessionHeaderProps) {
   const ws = useWebSocket();
 
   return (
@@ -99,7 +103,12 @@ function SessionHeader() {
       <div>{ws.status}</div>
 
       <div>
-        <button className="session-disconnect-btn">Disconnect</button>
+        <button
+          onClick={() => ws.leaveRoom(roomId)}
+          className="session-disconnect-btn"
+        >
+          Disconnect
+        </button>
       </div>
     </header>
   );
@@ -122,32 +131,12 @@ function FilesSideBar({ onClick }: FilesSideBarProps) {
 function CodeEditor({ roomId, fileId }: CodeEditorProps) {
   const ws = useWebSocket();
 
-  useEffect(() => {
-    const yDoc = ws.getRoomDocument(roomId);
-
-    function handleUpdate(value: Uint8Array) {
-      ws.sendYjsUpdate(roomId, value);
-    }
-
-    yDoc.on("update", handleUpdate);
-
-    return () => {
-      yDoc.off("update", handleUpdate);
-    };
-  });
-
   function handleMount(editor: any) {
-    const yDoc = ws.getRoomDocument(roomId);
+    const yDoc: Y.Doc = ws.getRoomDocument(roomId);
 
-    const yText = yDoc.getText(fileId);
+    const yText: Y.Text = yDoc.getText(fileId);
 
     const model = editor.getModel();
-
-    console.log(yText.toString());
-
-    yDoc.on("update", (value) => {
-      ws.sendYjsUpdate(roomId, value);
-    });
 
     new MonacoBinding(yText, model, new Set([editor]));
   }
