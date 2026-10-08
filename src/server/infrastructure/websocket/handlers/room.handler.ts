@@ -60,16 +60,14 @@ async function checkRoomAndLeave(
 
   const data: Room = roomManager.leave(client, user, databaseRoom);
 
-  const message = {
+  const message: WebSocketResponse = {
     type: "response",
     requestId: requestId,
-    code: "leaved_room",
-    roomId: data.id,
-    roomName: data.name,
-    members: Array.from(data.members.values()),
-    cursors: Array.from(data.cursors.values()),
-    messages: data.messages,
-    message: "You leaved the room.",
+    action: "leaved_room",
+    success: true,
+    data: {
+      room: data.id,
+    },
   };
 
   client.send(JSON.stringify(message));
