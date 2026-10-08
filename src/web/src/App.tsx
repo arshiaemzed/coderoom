@@ -29,7 +29,7 @@ function App() {
       <Route
         path="/login"
         element={
-          status === "authenticated" ? (
+          auth.status === "authenticated" ? (
             <Navigate to="/rooms" replace />
           ) : (
             <LoginScreen />
@@ -40,7 +40,7 @@ function App() {
       <Route
         path="/rooms/:roomId"
         element={
-          status === "unauthenticated" ? (
+          auth.status === "unauthenticated" ? (
             <Navigate to="/login" replace />
           ) : (
             <SessionScreen />
@@ -51,7 +51,7 @@ function App() {
       <Route
         path="/rooms"
         element={
-          status === "unauthenticated" ? (
+          auth.status === "unauthenticated" ? (
             <Navigate to="/login" replace />
           ) : (
             <Rooms />
