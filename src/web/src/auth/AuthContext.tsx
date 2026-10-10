@@ -9,13 +9,14 @@ import {
 import * as EmailValidator from "email-validator";
 
 import type { AuthStatus, User } from "./types";
-import { getCurrentUser, requsetLogin } from "../api/auth";
+import { getCurrentUser, requestLogout, requsetLogin } from "../api/auth";
 
 type AuthContextValue = {
   user: User | null;
   status: AuthStatus;
   error: AuthError;
   login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 };
 
 type AuthProviderProps = {
@@ -59,6 +60,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     restoreSession();
   }, []);
 
+  async function logout() {
+    try {
+      await requestLogout();
+      setUser(null);
+      setStatus("unauthenticated");
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async function login(email: string, password: string) {
     try {
       if (!EmailValidator.validate(email)) {
@@ -95,7 +106,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   return (
-    <AuthContext value={{ user, status, login, error }}>{children}</AuthContext>
+    <AuthContext value={{ user, status, login, logout, error }}>
+      {children}
+    </AuthContext>
   );
 }
 
