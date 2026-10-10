@@ -18,6 +18,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
 
+  const authPromiseRef = useRef<Promise<void> | null>(null);
+
+  const joinRoomPromiseRef = useRef<Promise<void> | null>(null);
+
   const pendingRequests = useRef<
     Map<
       string,
@@ -35,10 +39,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const { status, user } = useAuth();
 
   const roomRef = useRef<string | null>(null);
-
-  const authWebSocketRef = useRef<boolean>(false);
-
-  const joinedRef = useRef<boolean>(false);
 
   const navigate = useNavigate();
 
@@ -102,16 +102,13 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     }
   }
 
-  async function joinRoom(roomId: string): Promise<void> {
-    if (joinedRef.current === true) {
-      return Promise.resolve();
+  async function joinRoom(roomId: string) {
+    if (joinRoomPromiseRef.current !== null) {
+      return joinRoomPromiseRef.current;
     }
 
     try {
-      // TODO: Fix hardcoded !
-      await authWebSocket(user!.token);
-
-      return new Promise<void>((resolve, reject) => {
+      joinRoomPromiseRef.current = new Promise<void>((resolve, reject) => {
         const socket = socketRef.current;
 
         if (!socket || socket?.readyState !== WebSocket.OPEN) {
@@ -141,6 +138,51 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
         doc.on("update", handleUpdate);
       });
+      console.log("joinRoomPromiseRef", joinRoomPromiseRef.current);
+
+      await joinRoomPromiseRef.current;
+
+      return joinRoomPromiseRef.current;
+    } catch (error) {
+      console.log(error);
+      joinRoomPromiseRef.current = null;
+    }
+  }
+
+  function authWebSocket(token: string): Promise<void> {
+    if (authPromiseRef.current != null) {
+      return authPromiseRef.current;
+    }
+
+    console.log("authPromiseRef", authPromiseRef.current);
+
+    try {
+      authPromiseRef.current = new Promise((resolve, reject) => {
+        const socket = socketRef.current;
+        if (!socket || socket?.readyState !== WebSocket.OPEN) {
+          reject(new Error("You are not connected to the websocket server!"));
+          return;
+        }
+
+        const requestId: string = crypto.randomUUID();
+
+        const message: WebSocketRequest = {
+          type: "request",
+          requestId: requestId,
+          event: "login",
+          data: {
+            token: token,
+          },
+        };
+
+        pendingRequests.current.set(requestId, {
+          resolve: resolve,
+          reject: reject,
+        });
+
+        socketRef.current?.send(JSON.stringify(message));
+      });
+      return authPromiseRef.current;
     } catch (error) {
       throw error;
     }
@@ -173,42 +215,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     });
   }
 
-  function authWebSocket(token: string): Promise<void> {
-    if (authWebSocketRef.current === true) {
-      return Promise.resolve();
-    }
-
-    try {
-      return new Promise((resolve, reject) => {
-        const socket = socketRef.current;
-        if (!socket || socket?.readyState !== WebSocket.OPEN) {
-          reject(new Error("You are not connected to the websocket server!"));
-          return;
-        }
-
-        const requestId: string = crypto.randomUUID();
-
-        const message: WebSocketRequest = {
-          type: "request",
-          requestId: requestId,
-          event: "login",
-          data: {
-            token: token,
-          },
-        };
-
-        pendingRequests.current.set(requestId, {
-          resolve: resolve,
-          reject: reject,
-        });
-
-        socketRef.current?.send(JSON.stringify(message));
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
   useEffect(() => {
     if (status === "authenticated") {
       setConnectionStatus("connecting");
@@ -219,16 +225,20 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       socketRef.current = ws;
 
-      function handleOpen() {
-        setConnectionStatus("connected");
+      async function handleOpen() {
         console.log("Connected to websocket server.");
+
+        if (!user || !user.token) {
+          ws.close();
+          throw new Error("Failed to retrieve user session token.");
+        }
+        await authWebSocket(user.token);
+        setConnectionStatus("connected");
       }
 
       function handleClose() {
         socketRef.current = null;
         roomRef.current = null;
-        authWebSocketRef.current = false;
-        joinedRef.current = false;
         setConnectionStatus("disconnected");
         console.log("Disconnected from websocket server.");
         ws.close();
@@ -248,16 +258,19 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             if (ok) {
               const request = pendingRequests.current.get(requestId);
               request?.resolve();
-              authWebSocketRef.current = true;
+              pendingRequests.current.delete(requestId);
+              pendingRequests.current.delete(requestId);
+              // authPromiseRef.current = null;
             }
           }
 
           if (action === "you_joined_room") {
             if (ok) {
+              console.log("you_joined_room");
+              roomRef.current = response.data.roomId;
               const request = pendingRequests.current.get(requestId);
               request?.resolve();
-              roomRef.current = response.data.roomId;
-              joinedRef.current = true;
+              pendingRequests.current.delete(requestId);
             }
           }
 
@@ -265,8 +278,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             if (ok) {
               const request = pendingRequests.current.get(requestId);
               request?.resolve();
+              pendingRequests.current.delete(requestId);
+              authPromiseRef.current = null;
+              joinRoomPromiseRef.current = null;
               roomRef.current = null;
-              joinedRef.current = false;
               navigate("/rooms", { replace: true });
             }
           }
