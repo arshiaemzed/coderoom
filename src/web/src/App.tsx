@@ -14,10 +14,6 @@ function App() {
     return <p>Connecting to the server</p>;
   }
 
-  if (ws.status === "disconnected") {
-    return <p>Failed to reach the server.</p>;
-  }
-
   if (auth.status === "loading") {
     return <p>Authenticating ...</p>;
   }
