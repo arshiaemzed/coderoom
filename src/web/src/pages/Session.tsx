@@ -40,6 +40,10 @@ export function SessionScreen() {
     }
 
     async function verifyAndJoin() {
+      if (ws.status !== "connected") {
+        return;
+      }
+
       try {
         if (!roomId) {
           return;
