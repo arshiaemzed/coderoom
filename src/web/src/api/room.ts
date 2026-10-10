@@ -1,3 +1,5 @@
+import { apiHandler } from "../apiHandler";
+
 export async function fetchRooms() {
   const response = await fetch(`http://localhost:3001/rooms`, {
     method: "GET",
@@ -7,11 +9,7 @@ export async function fetchRooms() {
     },
   });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch the rooms.");
-  }
-
-  const data = await response.json();
+  const data = await apiHandler(response);
 
   return data;
 }
@@ -28,11 +26,7 @@ export async function searchRooms(searchStr: string) {
     },
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch the rooms.");
-  }
-
-  const data = await response.json();
+  const data = await apiHandler(response);
 
   return data;
 }

@@ -31,7 +31,7 @@ export async function requestLogout() {
     },
   });
 
-  console.log(response);
+  await apiHandler(response);
 }
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -39,10 +39,7 @@ export async function getCurrentUser(): Promise<User | null> {
     credentials: "include",
   });
 
-  if (!response.ok) {
-    return null;
-  }
-  const data: User = await response.json();
+  const data = await apiHandler(response);
 
   return data;
 }
