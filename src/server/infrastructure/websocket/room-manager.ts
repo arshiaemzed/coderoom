@@ -57,7 +57,7 @@ function join(client: WebSocket, user: Client, data: DatabaseRoom): Room {
   if (isMember(client, localRoom.id)) {
     throw new WebSocketError(
       "USER_ALREADY_JOINED_IN_ROOM",
-      "You are already joined  this room.",
+      "You are already connected to this room.",
     );
   }
 
