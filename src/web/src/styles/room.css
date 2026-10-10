@@ -182,3 +182,8 @@
 .searchbar-input:hover {
   border: 1px solid var(--border-hover);
 }
+
+.searchbar-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgb(79 140 255 / 0.12);
+}
