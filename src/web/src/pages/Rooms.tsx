@@ -28,7 +28,7 @@ function Rooms() {
 }
 
 function Header() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <header className="room-header">
@@ -41,7 +41,9 @@ function Header() {
             <p className="room-header-displayname-p">{user?.display_name}</p>
           </div>
           <div className="room-header-logout-div">
-            <button className="room-header-logout-btn">Logout</button>
+            <button onClick={() => logout()} className="room-header-logout-btn">
+              Logout
+            </button>
           </div>
         </div>
       </div>
