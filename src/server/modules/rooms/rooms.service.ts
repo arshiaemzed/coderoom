@@ -59,8 +59,14 @@ async function deleteRoom(
   return deletedRoom;
 }
 
-async function getUserRooms(userId: string) {
-  const rooms = await roomsRepository.getUserRooms(userId);
+async function getUserRooms() {
+  const rooms = await roomsRepository.getUserRooms();
+
+  return rooms;
+}
+
+async function searchRooms(searchQuery: string) {
+  const rooms = await roomsRepository.searchRooms(searchQuery);
 
   return rooms;
 }
@@ -71,4 +77,5 @@ export default {
   getUserRooms,
   requireRoom,
   requireOwnerPermission,
+  searchRooms,
 };

@@ -26,9 +26,12 @@ async function deleteRoom(req: Request, res: Response) {
 }
 
 async function getAllRooms(req: Request, res: Response) {
-  const userId = req.user.userId;
+  const rooms = await roomsService.getUserRooms();
 
-  const rooms = await roomsService.getUserRooms(userId);
+  if (req.query.search) {
+    const rooms = await roomsService.searchRooms(String(req.query.search));
+    return res.status(200).json(rooms);
+  }
 
   return res.status(200).json(rooms);
 }

@@ -93,7 +93,7 @@ async function deleteRoom(
   return result;
 }
 
-async function getUserRooms(userId: string) {
+async function getUserRooms() {
   const query = await db.query(
     `
     SELECT 
@@ -112,6 +112,27 @@ async function getUserRooms(userId: string) {
   return query.rows;
 }
 
+async function searchRooms(searchQuery: string) {
+  const query = await db.query(
+    `
+    SELECT 
+      rooms.id, 
+      rooms.user_id AS "ownerId",
+      rooms.name,
+      profiles.display_name AS "ownerName",
+      rooms.created_at AS "createdAt"
+    FROM rooms
+    JOIN profiles
+    ON profiles.user_id =  rooms.user_id
+    WHERE rooms.name ILIKE $1
+    ORDER BY rooms.created_at DESC;
+    `,
+    [`%${searchQuery}%`],
+  );
+
+  return query.rows;
+}
+
 export default {
   createRoom,
   deleteRoom,
@@ -119,4 +140,5 @@ export default {
   isOwnerOfTheRoom,
   getUserRooms,
   getAllRooms,
+  searchRooms,
 };
