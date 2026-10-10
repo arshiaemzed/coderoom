@@ -22,6 +22,18 @@ export async function requsetLogin(
   return data;
 }
 
+export async function requestLogout() {
+  const response: Response = await fetch("http://localhost:3001/auth/logout", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  console.log(response);
+}
+
 export async function getCurrentUser(): Promise<User | null> {
   const response = await fetch(`http://localhost:3001/auth/me`, {
     credentials: "include",
