@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 
+type RoomContextValue = {
+  rooms: Array<Room>;
+  searchRooms: (searchStr: string) => Promise<void>;
+};
+
 type Room = {
   id: string;
   name: string;
@@ -12,4 +17,4 @@ type RoomContextProps = {
   children: ReactNode;
 };
 
-export type { Room, RoomContextProps };
+export type { Room, RoomContextProps, RoomContextValue };

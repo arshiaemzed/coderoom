@@ -1,14 +1,25 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { fetchRooms } from "../api/room";
+import { fetchRooms, searchRooms } from "../api/room";
 import { useAuth } from "../auth/AuthContext";
-import type { Room, RoomContextProps } from "./types";
+import type { Room, RoomContextProps, RoomContextValue } from "./types";
 
-const RoomContext = createContext<Room[]>([]);
+const RoomContext = createContext<RoomContextValue | null>(null);
 
 export function RoomProvider({ children }: RoomContextProps) {
   const [rooms, setRooms] = useState<Room[]>([]);
 
   const { status } = useAuth();
+
+  async function getSearchedRooms(searchStr: string): Promise<void> {
+    try {
+      const rooms = await searchRooms(searchStr);
+
+      setRooms(rooms);
+    } catch (err) {
+      setRooms([]);
+      console.error(err);
+    }
+  }
 
   useEffect(() => {
     if (status !== "authenticated") {
@@ -29,7 +40,11 @@ export function RoomProvider({ children }: RoomContextProps) {
     getRooms();
   }, [status]);
 
-  return <RoomContext value={rooms}>{children}</RoomContext>;
+  return (
+    <RoomContext value={{ rooms: rooms, searchRooms: getSearchedRooms }}>
+      {children}
+    </RoomContext>
+  );
 }
 
 export function useRoom() {

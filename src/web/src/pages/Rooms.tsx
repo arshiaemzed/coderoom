@@ -13,14 +13,20 @@ type CodeRoom = {
   joinRoomAction: Function;
 };
 
+type SearchBarProps = {
+  onSearch: (searchStr: string) => Promise<void>;
+};
+
 function Rooms() {
+  const { searchRooms } = useRoom();
+
   return (
     <div className="rooms-page">
       <Header />
 
       <main className="rooms-main">
         <Heading />
-        <SearchBar />
+        <SearchBar onSearch={searchRooms} />
         <RoomGrid />
       </main>
     </div>
@@ -51,16 +57,22 @@ function Header() {
   );
 }
 
-function SearchBar() {
+function SearchBar({ onSearch }: SearchBarProps) {
   return (
     <div className="searchbar-div">
-      <input className="searchbar-input" placeholder="Enter room name"></input>
+      <input
+        onChange={(event) => {
+          onSearch(event.target.value);
+        }}
+        className="searchbar-input"
+        placeholder="Enter room name"
+      ></input>
     </div>
   );
 }
 
 function Heading() {
-  const rooms = useRoom();
+  const { rooms } = useRoom();
 
   return (
     <div className="room-heading">
@@ -79,7 +91,7 @@ function Heading() {
 }
 
 function RoomGrid() {
-  const rooms = useRoom();
+  const { rooms } = useRoom();
 
   const { joinRoom } = useWebSocket();
 
