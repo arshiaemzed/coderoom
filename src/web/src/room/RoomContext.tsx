@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { fetchRooms, searchRooms } from "../api/room";
 import { useAuth } from "../auth/AuthContext";
-import type { Room, RoomContextProps, RoomContextValue } from "./types";
+import type { RoomContextValue } from "./RoomContextValue";
+import type { RoomContextProps } from "./RoomContextProps";
+import type { Room } from "./Room";
 
 const RoomContext = createContext<RoomContextValue | null>(null);
 
