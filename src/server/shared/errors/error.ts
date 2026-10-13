@@ -1,14 +1,25 @@
-class AppError {
-  statusCode: number;
+import type { ErrorCode } from "./errorCodes.js";
 
+interface AppErrorProps {
+  statusCode?: number;
   errorMessage: string;
+  errorCode: ErrorCode;
+}
 
-  errorCode: string;
+class AppError extends Error {
+  statusCode?: number;
 
-  constructor(statusCode: number, errorMessage: string, errorCode: string) {
-    this.statusCode = statusCode;
-    this.errorMessage = errorMessage;
-    this.errorCode = errorCode;
+  errorCode: ErrorCode;
+
+  constructor(args: AppErrorProps) {
+    super(args.errorMessage);
+
+    if (args.statusCode !== undefined) {
+      this.statusCode = args.statusCode;
+    }
+
+    this.name = "AppError";
+    this.errorCode = args.errorCode;
   }
 }
 

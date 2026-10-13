@@ -3,10 +3,14 @@ import connectionManager from "../connection-manager.js";
 import { WebSocket } from "ws";
 import authService from "../services/auth.service.js";
 import type { Client, WebSocketResponse } from "../websocket.types.js";
+import AppError from "../../../shared/errors/error.js";
 
 async function auth(client: WebSocket, token: string, requestId: string) {
   if (connectionManager.get(client)) {
-    throw new Error("You are already connected to the server.");
+    throw new AppError({
+      errorCode: "ALREADY_CONNECTED_TO_THE_SERVER",
+      errorMessage: "You are already connected to the server.",
+    });
   }
 
   const clients = connectionManager.getAll();

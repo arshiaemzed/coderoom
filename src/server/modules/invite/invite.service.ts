@@ -1,6 +1,4 @@
-import { error } from "node:console";
 import AppError from "../../shared/errors/error.js";
-import errorCodes from "../../shared/errors/errorCodes.js";
 import roomsService from "../rooms/rooms.service.js";
 import inviteRepository from "./invite.repository.js";
 import type { InvitedUser, RoomMember } from "./invite.type.js";
@@ -19,11 +17,11 @@ async function inviteUser(
   );
 
   if (alreadyInvited) {
-    throw new AppError(
-      403,
-      "User has been already invited.",
-      errorCodes.USER_ALREADY_INVITED,
-    );
+    throw new AppError({
+      statusCode: 403,
+      errorCode: "USER_ALREADY_INVITED",
+      errorMessage: "User has been already invited.",
+    });
   }
 
   const isOwner: boolean = await roomsService.requireOwnerPermission(
@@ -32,11 +30,11 @@ async function inviteUser(
   );
 
   if (!isOwner) {
-    throw new AppError(
-      403,
-      "You are not allowed to invite users.",
-      errorCodes.NOT_ENOUGH_PERMISSION_TO_INVITE_USERS,
-    );
+    throw new AppError({
+      statusCode: 403,
+      errorCode: "NOT_ENOUGH_PERMISSION_TO_INVITE_USERS",
+      errorMessage: "You are not allowed to invite users.",
+    });
   }
 
   const isAlreadyMember: boolean = await memberRepository.checkMembership(
@@ -45,11 +43,11 @@ async function inviteUser(
   );
 
   if (isAlreadyMember) {
-    throw new AppError(
-      403,
-      "User is already member of this room.",
-      errorCodes.SPECIFIED_USER_IS_ALREADY_A_MEMBER,
-    );
+    throw new AppError({
+      statusCode: 403,
+      errorCode: "SPECIFIED_USER_IS_ALREADY_A_MEMBER",
+      errorMessage: "User is already member of this room.",
+    });
   }
 
   const invitedUser: InvitedUser = await inviteRepository.inviteUser(
@@ -70,18 +68,22 @@ async function revokeInvite(roomId: string, userId: string, targetId: string) {
   );
 
   if (!isOwner) {
-    throw new AppError(
-      403,
-      "You are not allowed to revoke invites.",
-      errorCodes.NOT_ENOUGH_PERMISSION_TO_REVOKE_INVITES,
-    );
+    throw new AppError({
+      statusCode: 403,
+      errorCode: "NOT_ENOUGH_PERMISSION_TO_REVOKE_INVITES",
+      errorMessage: "You are not allowed to revoke invites.",
+    });
   }
 
   const deletedInvite: InvitedUser | undefined =
     await inviteRepository.revokeInvite(roomId, targetId);
 
   if (!deletedInvite) {
-    throw new AppError(404, "Invite not found.", errorCodes.INVITE_NOT_FOUND);
+    throw new AppError({
+      statusCode: 404,
+      errorCode: "INVITE_NOT_FOUND",
+      errorMessage: "Invite not found.",
+    });
   }
 
   return deletedInvite;
@@ -96,11 +98,11 @@ async function acceptInvite(roomId: string, userId: string) {
   );
 
   if (!hasBeenInvited) {
-    throw new AppError(
-      403,
-      "You are not invited to this room",
-      errorCodes.YOU_ARE_NOT_INVITED_TO_THIS_ROOM,
-    );
+    throw new AppError({
+      statusCode: 403,
+      errorCode: "YOU_ARE_NOT_INVITED_TO_THIS_ROOM",
+      errorMessage: "You are not invited to this room.",
+    });
   }
 
   const isAlreadyMember: boolean = await memberRepository.checkMembership(
@@ -109,11 +111,11 @@ async function acceptInvite(roomId: string, userId: string) {
   );
 
   if (isAlreadyMember) {
-    throw new AppError(
-      403,
-      "You are already member of this room.",
-      errorCodes.ALREADY_MEMBER_OF_ROOM,
-    );
+    throw new AppError({
+      statusCode: 403,
+      errorCode: "ALREADY_MEMBER_OF_ROOM",
+      errorMessage: "You are alreay member of this room.",
+    });
   }
 
   const acceptedInvite: RoomMember = await inviteRepository.acceptInvite(
@@ -133,11 +135,11 @@ async function declineInvite(roomId: string, userId: string) {
   );
 
   if (!hasBeenInvited) {
-    throw new AppError(
-      403,
-      "You are not invited to this room",
-      errorCodes.YOU_ARE_NOT_INVITED_TO_THIS_ROOM,
-    );
+    throw new AppError({
+      statusCode: 403,
+      errorCode: "YOU_ARE_NOT_INVITED_TO_THIS_ROOM",
+      errorMessage: "Yoi are not invited to this room.",
+    });
   }
 
   const declinedInvite: InvitedUser = await inviteRepository.declineInvite(

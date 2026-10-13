@@ -2,7 +2,6 @@ import { WebSocketServer, WebSocket } from "ws";
 import eventRouter from "./event-router.js";
 import roomManager from "./room-manager.js";
 import connectionManager from "./connection-manager.js";
-import WebSocketError from "./websocket.error.js";
 import { getAllFiles } from "./services/get.all.files.service.js";
 import fileManager from "./file-manager.js";
 import { getAllRooms } from "./services/get.all.rooms.service.js";
@@ -40,12 +39,12 @@ export function runWebSocketServer() {
         alive.set(socket, true);
         await eventRouter(socket, e);
       } catch (error) {
-        if (error instanceof WebSocketError) {
-          socket.send(
-            JSON.stringify({ code: error.code, message: error.message }),
-          );
-          console.log(`catched error: ${error.message}`);
-        }
+        // if (error instanceof WebSocketError) {
+        //   socket.send(
+        //     JSON.stringify({ code: error.code, message: error.message }),
+        //   );
+        //   console.log(`catched error: ${error.message}`);
+        // }
       }
     });
 

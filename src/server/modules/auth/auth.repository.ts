@@ -5,6 +5,7 @@ import {
   type User,
   type UserPasswordInfo,
 } from "./auth.types.js";
+import AppError from "../../shared/errors/error.js";
 
 async function signUp(
   email: string,
@@ -24,7 +25,11 @@ async function signUp(
     const user = query.rows[0];
 
     if (!user) {
-      throw new Error("Failed to create the user.");
+      throw new AppError({
+        statusCode: 500,
+        errorCode: "FAILED_TO_CREATE_USER",
+        errorMessage: "Failed to create user.",
+      });
     }
 
     const profileQuery = await client.query<User>(
@@ -35,7 +40,10 @@ async function signUp(
     const profile: User | undefined = profileQuery.rows[0];
 
     if (!profile) {
-      throw new Error("Failed to create profile for the user");
+      throw new AppError({
+        errorCode: "FAILED_TO_CREATE_PROFILE",
+        errorMessage: "Failed to create profile for the user.",
+      });
     }
 
     await client.query("COMMIT;");

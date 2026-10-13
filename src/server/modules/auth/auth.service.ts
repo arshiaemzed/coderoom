@@ -1,7 +1,6 @@
 import authRepository from "./auth.repository.js";
 import AppError from "../../shared/errors/error.js";
 import argon2 from "argon2";
-import errorCodes from "../../shared/errors/errorCodes.js";
 import crypto from "crypto";
 import type { AuthSession, User, UserPasswordInfo } from "./auth.types.js";
 
@@ -13,11 +12,11 @@ async function signUp(
   const userExists: boolean = await authRepository.userExists(email);
 
   if (userExists) {
-    throw new AppError(
-      401,
-      "User already exists with that email.",
-      errorCodes.USER_ALREADY_EXISTS,
-    );
+    throw new AppError({
+      statusCode: 401,
+      errorCode: "USER_ALREADY_EXISTS",
+      errorMessage: "Account already exists.",
+    });
   }
 
   // the default algorithm for hashing is argon2id
@@ -40,21 +39,21 @@ async function login(email: string, password: string) {
     await authRepository.findUser(email);
 
   if (!user) {
-    throw new AppError(
-      401,
-      "Invalid credentials.",
-      errorCodes.INVALID_CREDENTIALS,
-    );
+    throw new AppError({
+      statusCode: 401,
+      errorCode: "INVALID_CREDENTIALS",
+      errorMessage: "Invalid credentials.",
+    });
   }
 
   const passwordMatch: boolean = await argon2.verify(user.password, password);
 
   if (!passwordMatch) {
-    throw new AppError(
-      401,
-      "Invalid credentials.",
-      errorCodes.INVALID_CREDENTIALS,
-    );
+    throw new AppError({
+      statusCode: 401,
+      errorCode: "INVALID_CREDENTIALS",
+      errorMessage: "Invalid credentials.",
+    });
   }
 
   const rawToken: string = crypto.randomBytes(32).toString("hex");
@@ -68,11 +67,11 @@ async function login(email: string, password: string) {
     await authRepository.createAuthSession(tokenHash, user.id);
 
   if (!createdSession) {
-    throw new AppError(
-      500,
-      "Failed to create session.",
-      errorCodes.FAILED_TO_CREATE_AUTH_SESSION,
-    );
+    throw new AppError({
+      statusCode: 500,
+      errorCode: "FAILED_TO_CREATE_AUTH_SESSION",
+      errorMessage: "Failed to create session.",
+    });
   }
 
   return {
@@ -91,11 +90,11 @@ async function authMe(rawToken: string) {
   const authSession = await authRepository.validateSession(tokenHash);
 
   if (!authSession) {
-    throw new AppError(
-      401,
-      "Unauthorized.",
-      errorCodes.INVALID_COOKIE_BASED_TOKEN,
-    );
+    throw new AppError({
+      statusCode: 401,
+      errorCode: "INVALID_COOKIE_BASED_TOKEN",
+      errorMessage: "Unauthorized.",
+    });
   }
   return {
     displayName: authSession.displayName,

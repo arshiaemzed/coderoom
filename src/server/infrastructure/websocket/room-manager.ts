@@ -1,7 +1,7 @@
-import WebSocketError from "./websocket.error.js";
 import type { Client, Cursor, Message, Room } from "./websocket.types.js";
 import { WebSocket } from "ws";
 import type { DatabaseRoom } from "../../modules/rooms/rooms.type.js";
+import AppError from "../../shared/errors/error.js";
 
 let rooms: Array<Room> = [];
 
@@ -55,10 +55,10 @@ function join(client: WebSocket, user: Client, data: DatabaseRoom): Room {
   }
 
   if (isMember(client, localRoom.id)) {
-    throw new WebSocketError(
-      "USER_ALREADY_JOINED_IN_ROOM",
-      "You are already connected to this room.",
-    );
+    throw new AppError({
+      errorCode: "USER_ALREADY_JOINED_IN_THE_ROOM",
+      errorMessage: "You are already connected to this room.",
+    });
   }
 
   addMember(client, localRoom.id, {
@@ -80,7 +80,10 @@ function leave(client: WebSocket, user: Client, databaseRoom: DatabaseRoom) {
   const localRoom: Room | undefined = findRoomById(databaseRoom.id);
 
   if (!localRoom) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found.",
+    });
   }
 
   requireRoomMember(client, localRoom.id);
@@ -99,7 +102,10 @@ function addMember(socket: WebSocket, roomId: string, client: Client): void {
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found.",
+    });
   }
 
   room.members.set(socket, client);
@@ -109,7 +115,10 @@ function addCursor(socket: WebSocket, roomId: string, cursor: Cursor): void {
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found.",
+    });
   }
 
   room.cursors.set(socket, cursor);
@@ -123,22 +132,28 @@ function updateCursor(
   dy: number,
 ) {
   if (!user) {
-    throw new WebSocketError(
-      "USER_NOT_AUTHENTICATED",
-      "You are not authenticated.",
-    );
+    // throw new WebSocketError(
+    //   "USER_NOT_AUTHENTICATED",
+    //   "You are not authenticated.",
+    // );
   }
 
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found",
+    });
   }
 
   const cursor = room.cursors.get(socket);
 
   if (!cursor) {
-    throw new WebSocketError("CURSOR_NOT_FOUND", "Cursor not found.");
+    throw new AppError({
+      errorCode: "CURSOR_NOT_FOUND",
+      errorMessage: "Cursor not found.",
+    });
   }
 
   cursor.dx = dx;
@@ -158,7 +173,10 @@ function removeCursor(socket: WebSocket, roomId: string): void {
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found.",
+    });
   }
 
   room.cursors.delete(socket);
@@ -168,7 +186,10 @@ function addMessage(socket: WebSocket, roomId: string, message: Message) {
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found.",
+    });
   }
 
   room.messages.push(message);
@@ -180,7 +201,10 @@ function removeMember(socket: WebSocket, roomId: string): void {
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found.",
+    });
   }
 
   room.members.delete(socket);
@@ -202,7 +226,10 @@ function isMember(socket: WebSocket, roomId: string): boolean {
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found.",
+    });
   }
 
   const member: Client | undefined = room.members.get(socket);
@@ -214,16 +241,19 @@ function requireRoomMember(socket: WebSocket, roomId: string) {
   const room: Room | undefined = findRoomById(roomId);
 
   if (!room) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_NOT_FOUND",
+      errorMessage: "Room not found.",
+    });
   }
 
   const user: Client | undefined = room.members.get(socket);
 
   if (!user) {
-    throw new WebSocketError(
-      "USER_NOT_JOINED_IN_ROOM",
-      "You are not joined in the room",
-    );
+    throw new AppError({
+      errorCode: "USER_NOT_JOINED_IN_ROOM",
+      errorMessage: "You are not joined in the room.",
+    });
   }
 
   return { room: room, member: user };

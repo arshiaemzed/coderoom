@@ -46,16 +46,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     async function restoreSession() {
-      const currentUser = await getCurrentUser();
+      try {
+        const currentUser = await getCurrentUser();
 
-      if (!currentUser) {
-        setUser(null);
+        if (!currentUser) {
+          setUser(null);
+          setStatus("unauthenticated");
+          return;
+        }
+
+        setUser(currentUser);
+        setStatus("authenticated");
+      } catch (err) {
         setStatus("unauthenticated");
-        return;
+        setUser(null);
+        console.log(err);
+        //         return res.status(500).json({
+        //   success: false,
+        //   error: {
+        //     code: "INTERNAL_SERVER_ERROR",
+        //     message: "Internal server error.",
+        //   },
+        // });
+        console.log(err);
+        setError({
+          hasError: true,
+          message: String(err),
+          type: "system",
+        });
       }
-
-      setUser(currentUser);
-      setStatus("authenticated");
     }
     restoreSession();
   }, []);
@@ -67,6 +86,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setStatus("unauthenticated");
     } catch (err) {
       console.error(err);
+      setError({ hasError: true, message: String(err), type: "system" });
     }
   }
 

@@ -16,7 +16,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const socketRef = useRef<WebSocket | null>(null);
 
   const [connectionStatus, setConnectionStatus] =
-    useState<ConnectionStatus>("disconnected");
+    useState<ConnectionStatus>("connecting");
 
   const authPromiseRef = useRef<Promise<void> | null>(null);
 
@@ -217,8 +217,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
   useEffect(() => {
     if (status === "authenticated") {
-      setConnectionStatus("connecting");
-
       const ws = new WebSocket("ws://localhost:3002");
 
       const doc: Y.Doc = getRoomDocument();
@@ -226,22 +224,21 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       socketRef.current = ws;
 
       async function handleOpen() {
-        console.log("Connected to websocket server.");
-
         if (!user || !user.token) {
           ws.close();
           throw new Error("Failed to retrieve user session token.");
         }
         await authWebSocket(user.token);
+        console.log("Connected to websocket server.");
         setConnectionStatus("connected");
       }
 
       function handleClose() {
         socketRef.current = null;
         roomRef.current = null;
-        setConnectionStatus("disconnected");
-        console.log("Disconnected from websocket server.");
         ws.close();
+        console.log("Disconnected from websocket server.");
+        setConnectionStatus("disconnected");
       }
 
       function handleMessage(ev: MessageEvent<any>) {

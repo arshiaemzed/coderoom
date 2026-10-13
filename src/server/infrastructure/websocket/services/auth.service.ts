@@ -1,7 +1,7 @@
 import authRepository from "../../../modules/auth/auth.repository.js";
 import crypto from "crypto";
-import WebSocketError from "../websocket.error.js";
 import type { AuthSession } from "../../../modules/auth/auth.types.js";
+import AppError from "../../../shared/errors/error.js";
 
 async function auth(token: string): Promise<AuthSession> {
   const tokenHash: string = crypto
@@ -13,7 +13,10 @@ async function auth(token: string): Promise<AuthSession> {
     await authRepository.findSessionByTokenHash(tokenHash);
 
   if (!valid) {
-    throw new WebSocketError("INVALID_AUTH_SESSION", "Auth session not found.");
+    throw new AppError({
+      errorCode: "AUTH_SESSION_NOT_FOUND",
+      errorMessage: "Auth session not found.",
+    });
   }
 
   return valid;

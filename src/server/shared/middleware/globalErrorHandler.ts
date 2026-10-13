@@ -18,9 +18,9 @@ function globalErrorHandler(
   next: NextFunction,
 ): Response<ErrorResponse> {
   if (err instanceof AppError) {
-    const statusCode: number = err.statusCode;
+    const statusCode: number = err.statusCode ?? 500;
 
-    const errorMessage: string = err.errorMessage;
+    const errorMessage: string = err.message;
 
     const errorCode: string = err.errorCode;
 
@@ -44,8 +44,6 @@ function globalErrorHandler(
       },
     });
   }
-
-  console.log(err);
 
   return res.status(500).json({
     success: false,

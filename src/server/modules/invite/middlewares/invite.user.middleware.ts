@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import validateRequestBody from "../../../shared/utils/validators/validateRequestBody.js";
 import AppError from "../../../shared/errors/error.js";
-import errorCodes from "../../../shared/errors/errorCodes.js";
 
 function inviteUserMiddleware(req: Request, res: Response, next: NextFunction) {
   validateRequestBody(req.body);
@@ -13,11 +12,11 @@ function inviteUserMiddleware(req: Request, res: Response, next: NextFunction) {
     typeof invitedUserId !== "string" ||
     invitedUserId.trim() === ""
   ) {
-    throw new AppError(
-      400,
-      "Invalid user_id provided for inviting a user.",
-      errorCodes.INVALID_FIELD,
-    );
+    throw new AppError({
+      statusCode: 400,
+      errorCode: "INVALID_FIELD",
+      errorMessage: "Invalid user_id provided for inviting a user.",
+    });
   }
 
   next();

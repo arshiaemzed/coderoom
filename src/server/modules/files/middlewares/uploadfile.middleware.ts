@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import validateRequestBody from "../../../shared/utils/validators/validateRequestBody.js";
 import AppError from "../../../shared/errors/error.js";
-import errorCodes from "../../../shared/errors/errorCodes.js";
 
 function uploadFileMiddleware(req: Request, res: Response, next: NextFunction) {
   const body = req.body;
@@ -11,17 +10,21 @@ function uploadFileMiddleware(req: Request, res: Response, next: NextFunction) {
   const fileName = body.fileName;
 
   if (!fileName || typeof fileName !== "string") {
-    throw new AppError(400, "Invalid file name", errorCodes.INVALID_FILE_NAME);
+    throw new AppError({
+      statusCode: 400,
+      errorCode: "INVALID_FILE_NAME",
+      errorMessage: "Invalid file name.",
+    });
   }
 
   const fileContent = body.fileContent;
 
   if (!fileContent || typeof fileContent !== "string") {
-    throw new AppError(
-      400,
-      "Invalid file content",
-      errorCodes.INVALID_FILE_CONTENT,
-    );
+    throw new AppError({
+      statusCode: 400,
+      errorCode: "INVALID_FILE_CONTENT",
+      errorMessage: "Invalid file content.",
+    });
   }
 
   next();

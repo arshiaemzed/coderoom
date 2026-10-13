@@ -5,7 +5,7 @@ import type {
   DatabaseRoom,
   RoomFile,
 } from "../../../modules/rooms/rooms.type.js";
-import WebSocketError from "../websocket.error.js";
+import AppError from "../../../shared/errors/error.js";
 
 async function loadFiles(
   roomId: string,
@@ -15,7 +15,10 @@ async function loadFiles(
     await roomsRepository.doesRoomExists(roomId);
 
   if (!databaseRoom) {
-    throw new WebSocketError("ROOM_NOT_FOUND", "Room not found.");
+    throw new AppError({
+      errorCode: "ROOM_DOES_NOT_EXISTS",
+      errorMessage: "Room does not exists.",
+    });
   }
 
   const member: boolean = await memberRepository.checkMembership(
@@ -24,10 +27,10 @@ async function loadFiles(
   );
 
   if (!member) {
-    throw new WebSocketError(
-      "USER_NOT_MEMBER_OF_ROOM",
-      "You are not member of the room",
-    );
+    throw new AppError({
+      errorCode: "USER_NOT_MEMBER_OF_ROOM",
+      errorMessage: "You are not member of this room.",
+    });
   }
 
   const files: Array<RoomFile> = await filesRepository.getRoomFiles(roomId);

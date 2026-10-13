@@ -3,7 +3,6 @@ import crypto from "node:crypto";
 import type { AuthSession } from "../../modules/auth/auth.types.js";
 import authRepository from "../../modules/auth/auth.repository.js";
 import AppError from "../errors/error.js";
-import errorCodes from "../errors/errorCodes.js";
 
 async function cookieMiddleware(
   req: Request,
@@ -13,7 +12,11 @@ async function cookieMiddleware(
   const sessionToken = req.cookies.session;
 
   if (!sessionToken) {
-    return res.status(401).json({ message: "Unauthorized." });
+    throw new AppError({
+      statusCode: 401,
+      errorCode: "INVALID_AUTHORIZATION",
+      errorMessage: "Invalid authorization.",
+    });
   }
 
   try {
@@ -26,11 +29,11 @@ async function cookieMiddleware(
       await authRepository.findSessionByTokenHash(tokenHash);
 
     if (!userSession) {
-      throw new AppError(
-        401,
-        "Invalid authorization",
-        errorCodes.INVALID_AUTHORIZATION,
-      );
+      throw new AppError({
+        statusCode: 401,
+        errorCode: "INVALID_AUTHORIZATION",
+        errorMessage: "Invalid authorization.",
+      });
     }
 
     Object.defineProperty(req, "user", {

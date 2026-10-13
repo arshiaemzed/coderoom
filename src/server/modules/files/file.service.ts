@@ -2,7 +2,6 @@ import type { RoomFile } from "../rooms/rooms.type.js";
 import roomService from "../rooms/rooms.service.js";
 import filesRepository from "./files.repository.js";
 import AppError from "../../shared/errors/error.js";
-import errorCodes from "../../shared/errors/errorCodes.js";
 import memberService from "../member/member.service.js";
 import roomNotifier from "../../infrastructure/websocket/room.notifier.js";
 import roomManager from "../../infrastructure/websocket/room-manager.js";
@@ -16,13 +15,12 @@ async function getSpecificFile(userId: string, roomId: string, fileId: string) {
   const file: File | undefined = await filesRepository.getSpecificFile(fileId);
 
   if (!file) {
-    throw new AppError(
-      404,
-      "Requested file not found.",
-      errorCodes.FILE_NOT_FOUND,
-    );
+    throw new AppError({
+      statusCode: 404,
+      errorCode: "FILE_NOT_FOUND",
+      errorMessage: "Requested file not found.",
+    });
   }
-
   return file;
 }
 
@@ -37,11 +35,11 @@ async function uploadFile(
   const isOwner = await roomService.requireOwnerPermission(roomId, userId);
 
   if (!isOwner) {
-    throw new AppError(
-      403,
-      "You are not allowed to upload files.",
-      errorCodes.NOT_ENOUGH_PERMISSION_TO_UPLOAD_FILES,
-    );
+    throw new AppError({
+      statusCode: 403,
+      errorCode: "NOT_ENOUGH_PERMISSION_TO_UPLOAD_FILES",
+      errorMessage: "You are not allowed to upload files.",
+    });
   }
 
   const uploadedFile: RoomFile | undefined = await filesRepository.uploadFile(
@@ -52,11 +50,11 @@ async function uploadFile(
   );
 
   if (!uploadedFile) {
-    throw new AppError(
-      500,
-      "Failed to upload the file.",
-      errorCodes.UPLOAD_FILE_FAILED,
-    );
+    throw new AppError({
+      statusCode: 500,
+      errorCode: "UPLOAD_FILE_FAILED",
+      errorMessage: "Failed to upload the file.",
+    });
   }
 
   fileManager.addFile(

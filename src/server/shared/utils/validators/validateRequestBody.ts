@@ -1,13 +1,12 @@
 import AppError from "../../errors/error.js";
-import errorCodes from "../../errors/errorCodes.js";
 
 function validateRequestBody(body: object) {
   if (!body) {
-    throw new AppError(
-      400,
-      "Invalid body request.",
-      errorCodes.INVALID_BODY_REQUEST,
-    );
+    throw new AppError({
+      statusCode: 400,
+      errorMessage: "Invalid body request.",
+      errorCode: "INVALID_BODY_REQUEST",
+    });
   }
 }
 

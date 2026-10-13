@@ -9,6 +9,8 @@ export async function apiHandler(response: any) {
     return data;
   }
 
+  console.log(data);
+
   const errorMessage: string = data["error"]["message"];
   const errorCode: string = data["error"]["code"];
 

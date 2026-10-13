@@ -109,7 +109,7 @@ async function eventRouter(socket: WebSocket, data: any) {
       requestId: userEvent.requestId,
       success: false,
       error: {
-        code: err.code || "INTERNAL_WEBSOCKET_ERROR",
+        code: err.errorCode || "INTERNAL_WEBSOCKET_ERROR",
         message: err.message || String(err),
       },
     };

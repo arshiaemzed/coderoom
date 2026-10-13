@@ -1,5 +1,6 @@
 import type { DatabaseRoom } from "./rooms.type.js";
 import db from "../../infrastructure/postgres/pool.js";
+import AppError from "../../shared/errors/error.js";
 
 async function getAllRooms() {
   const query = await db.query("SELECT * FROM rooms");
@@ -28,7 +29,10 @@ async function createRoom(
   const result = query.rows[0];
 
   if (!result) {
-    throw new Error("Failed to create room.");
+    throw new AppError({
+      errorCode: "FAILED_TO_CREATE_ROOM",
+      errorMessage: "Failed to create room.",
+    });
   }
 
   return result;

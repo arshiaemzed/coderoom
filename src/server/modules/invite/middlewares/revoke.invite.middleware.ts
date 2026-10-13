@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import validateRequestBody from "../../../shared/utils/validators/validateRequestBody.js";
 import AppError from "../../../shared/errors/error.js";
-import errorCodes from "../../../shared/errors/errorCodes.js";
 
 function revokeInviteMiddleware(
   req: Request,
@@ -13,11 +12,12 @@ function revokeInviteMiddleware(
   const userId = req.body.user_id;
 
   if (!userId || typeof userId !== "string" || userId.trim() === "") {
-    throw new AppError(
-      400,
-      "You should enter id of the user you are trying to invoke their invite.",
-      errorCodes.INVALID_FIELD,
-    );
+    throw new AppError({
+      statusCode: 400,
+      errorCode: "INVALID_FIELD",
+      errorMessage:
+        "You should enter id of the user you are trying to invoke their invite.",
+    });
   }
   next();
 }

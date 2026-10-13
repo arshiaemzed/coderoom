@@ -1,4 +1,4 @@
-import WebSocketError from "./websocket.error.js";
+import AppError from "../../shared/errors/error.js";
 import { type Client } from "./websocket.types.js";
 import { type WebSocket } from "ws";
 
@@ -29,10 +29,10 @@ function checkAuth(socket: WebSocket): Client {
   const user: Client | undefined = get(socket);
 
   if (!user) {
-    throw new WebSocketError(
-      "USER_NOT_AUTHENTICATED",
-      "Specified user is not authenticated.",
-    );
+    throw new AppError({
+      errorCode: "USER_NOT_AUTHENTICATED",
+      errorMessage: "You are not authenticated.",
+    });
   }
 
   return user;
