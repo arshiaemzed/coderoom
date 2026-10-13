@@ -1,22 +1,12 @@
 import { type NextFunction, type Request, type Response } from "express";
 import AppError from "../errors/error.js";
 
-interface ApiError {
-  code: string;
-  message: string;
-}
-
-interface ErrorResponse {
-  success: false;
-  error: ApiError;
-}
-
 function globalErrorHandler(
   err: any,
   req: Request,
-  res: Response<ErrorResponse>,
+  res: Response,
   next: NextFunction,
-): Response<ErrorResponse> {
+) {
   if (err instanceof AppError) {
     const statusCode: number = err.statusCode ?? 500;
 
@@ -24,7 +14,7 @@ function globalErrorHandler(
 
     const errorCode: string = err.errorCode;
 
-    const errorResponse: ErrorResponse = {
+    const errorResponse = {
       success: false,
       error: {
         code: errorCode,
