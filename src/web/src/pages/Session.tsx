@@ -88,6 +88,9 @@ export function SessionScreen() {
           <FilesSideBar onClick={setFile} />
           {file && <CodeEditor key={file} fileId={file} roomId={roomId!} />}
         </div>
+        <div>
+          <ConnectedUsers />
+        </div>
       </div>
     );
   }
@@ -127,6 +130,18 @@ function FilesSideBar({ onClick }: FilesSideBarProps) {
         <button onClick={() => onClick(key)} key={key}>
           {value}
         </button>
+      ))}
+    </div>
+  );
+}
+
+function ConnectedUsers() {
+  const ws = useWebSocket();
+
+  return (
+    <div>
+      {[...ws.members.entries()].map(([key, value]) => (
+        <p key={key}>{value}</p>
       ))}
     </div>
   );

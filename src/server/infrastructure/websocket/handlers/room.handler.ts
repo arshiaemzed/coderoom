@@ -36,13 +36,21 @@ async function checkRoomAndJoin(
 
   client.send(JSON.stringify(message));
 
-  room.members.forEach((client: Client, socket: WebSocket) => {
-    socket.send(
-      JSON.stringify({
-        code: "user_joined",
-        user: { userId: user.userId, displayName: user.displayName },
-      }),
-    );
+  room.members.forEach((_, socket: WebSocket) => {
+    // Notifiying other sockets that a new user has joined the room
+    if (socket !== client) {
+      const userJoinedResponse = {
+        type: "event",
+        event: "user_joined",
+        success: true,
+        data: {
+          userId: user.userId,
+          displayName: user.displayName,
+        },
+      };
+
+      socket.send(JSON.stringify(userJoinedResponse));
+    }
   });
 }
 
@@ -72,16 +80,19 @@ async function checkRoomAndLeave(
 
   client.send(JSON.stringify(message));
 
-  data.members.forEach((client: Client, socket: WebSocket) => {
-    socket.send(
-      JSON.stringify({
-        code: "user_leaved",
-        user: {
+  data.members.forEach((_, socket: WebSocket) => {
+    if (socket !== client) {
+      const userLeavedMessage = {
+        type: "event",
+        event: "user_leaved",
+        success: true,
+        data: {
           userId: user.userId,
-          displayName: user.displayName,
         },
-      }),
-    );
+      };
+
+      socket.send(JSON.stringify(userLeavedMessage));
+    }
   });
 }
 

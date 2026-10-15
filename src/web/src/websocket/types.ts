@@ -9,6 +9,7 @@ type WebSocketContextValue = {
   leaveRoom: (roomId: string) => Promise<void>;
   getRoomDocument: (roomId: string) => Y.Doc;
   files: Map<string, string>;
+  members: Map<string, string>;
 };
 
 type WebSocketProviderProps = {

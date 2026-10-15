@@ -5,10 +5,10 @@ import type {
   WebSocketProviderProps,
   WebSocketRequest,
 } from "./types";
-import { WebSocketContext } from "./WebSocketContext";
 import * as Y from "yjs";
 import helper from "../helpers/helper";
 import { useNavigate } from "react-router";
+import { WebSocketContext } from "./WebSocketContext";
 
 const REMOTE_UPADTE = Symbol("REMOTE_UPDATE");
 
@@ -35,6 +35,27 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const roomDocument = useRef<Y.Doc>(new Y.Doc());
 
   const [files, setFiles] = useState<Map<string, string>>(new Map());
+
+  const [members, setMembers] = useState<Map<string, string>>(new Map());
+
+  function addMember(userId: string, displayName: string) {
+    setMembers((prev) => {
+      const updated = new Map(prev);
+
+      updated.set(userId, displayName);
+
+      return updated;
+    });
+  }
+
+  function removeMember(userId: string) {
+    setMembers((prev) => {
+      const updated = new Map(prev);
+
+      updated.delete(userId);
+      return updated;
+    });
+  }
 
   const { status, user } = useAuth();
 
@@ -247,6 +268,28 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         const eventType = response.type;
         const ok = response.success;
         const requestId = response.requestId;
+        const data = response.data;
+
+        if (eventType === "event") {
+          const event = response.event;
+
+          if (event === "user_joined") {
+            if (ok) {
+              const userId = data.userId;
+              const displayName = data.displayName;
+
+              addMember(userId, displayName);
+            }
+          }
+
+          if (event === "user_leaved") {
+            if (ok) {
+              const userId = data.userId;
+
+              removeMember(userId);
+            }
+          }
+        }
 
         if (eventType === "response") {
           const action = response.action;
@@ -263,8 +306,17 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
           if (action === "you_joined_room") {
             if (ok) {
+              const users = data.members;
+
+              for (let i = 0; i < users.length; i++) {
+                const userId = users[i].userId;
+                const displayName = users[i].displayName;
+
+                addMember(userId, displayName);
+              }
+
               console.log("you_joined_room");
-              roomRef.current = response.data.roomId;
+              roomRef.current = data.roomId;
               const request = pendingRequests.current.get(requestId);
               request?.resolve();
               pendingRequests.current.delete(requestId);
@@ -279,6 +331,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
               authPromiseRef.current = null;
               joinRoomPromiseRef.current = null;
               roomRef.current = null;
+              setMembers(new Map());
               navigate("/rooms", { replace: true });
             }
           }
@@ -286,7 +339,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           if (action === "doc_updated") {
             if (ok) {
               console.log("doc updated received");
-              const data = response.data;
               const update = data.update;
 
               const encodedUpdate = helper.base64ToUint8Array(update);
@@ -303,8 +355,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
           if (action === "received_files") {
             if (ok) {
-              const data = response.data;
-
               const decodedState: Uint8Array = helper.base64ToUint8Array(
                 data.state,
               );
@@ -362,11 +412,12 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   return (
     <WebSocketContext
       value={{
-        status: connectionStatus,
+        files: files,
+        getRoomDocument: getRoomDocument,
         joinRoom: joinRoom,
         leaveRoom: leaveRoom,
-        getRoomDocument: getRoomDocument,
-        files: files,
+        status: connectionStatus,
+        members: members,
       }}
     >
       {children}
