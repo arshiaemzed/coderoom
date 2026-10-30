@@ -9,7 +9,8 @@ type eventType =
   | "delete_operation"
   | "upload_file"
   | "yjs_update"
-  | "load_files";
+  | "load_files"
+  | "awareness_update";
 
 type messageType = "request";
 

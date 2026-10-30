@@ -78,6 +78,10 @@ async function eventRouter(socket: WebSocket, data: any) {
             userEvent.data.update,
           );
           break;
+        case "awareness_update":
+          console.log(data);
+          break;
+
         case "send_message":
           if (!userEvent.data.message) {
             break;

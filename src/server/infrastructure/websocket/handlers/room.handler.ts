@@ -26,6 +26,7 @@ async function checkRoomAndJoin(
     action: "you_joined_room",
     success: true,
     data: {
+      user: user,
       members: Array.from(room.members.values()),
       cursors: Array.from(room.cursors.values()),
       messages: room.messages,
