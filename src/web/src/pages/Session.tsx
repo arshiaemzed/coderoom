@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
 import { useWebSocket } from "../websocket/useWebSocket";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MonacoBinding } from "y-monaco";
 import Editor from "@monaco-editor/react";
 import * as Y from "yjs";
@@ -150,15 +150,35 @@ function ConnectedUsers() {
 function CodeEditor({ roomId, fileId }: CodeEditorProps) {
   const ws = useWebSocket();
 
+  const bindingRef = useRef<MonacoBinding | null>(null);
+
   function handleMount(editor: any) {
     const yDoc: Y.Doc = ws.getRoomDocument(roomId);
+
+    const awareness = ws.getAwareness();
 
     const yText: Y.Text = yDoc.getText(fileId);
 
     const model = editor.getModel();
 
-    new MonacoBinding(yText, model, new Set([editor]));
+    bindingRef.current = new MonacoBinding(
+      yText,
+      model,
+      new Set([editor]),
+      awareness,
+    );
+
+    awareness.setLocalStateField("activeFile", {
+      fileId,
+    });
   }
+
+  useEffect(() => {
+    return () => {
+      bindingRef.current?.destroy();
+      bindingRef.current = null;
+    };
+  }, []);
 
   return (
     <div className="editor">

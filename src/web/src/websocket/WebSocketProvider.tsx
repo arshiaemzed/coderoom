@@ -9,6 +9,7 @@ import * as Y from "yjs";
 import helper from "../helpers/helper";
 import { useNavigate } from "react-router";
 import { WebSocketContext } from "./WebSocketContext";
+import { Awareness, encodeAwarenessUpdate } from "y-protocols/awareness.js";
 
 const REMOTE_UPADTE = Symbol("REMOTE_UPDATE");
 
@@ -21,6 +22,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const authPromiseRef = useRef<Promise<void> | null>(null);
 
   const joinRoomPromiseRef = useRef<Promise<void> | null>(null);
+
+  const awarenessRef = useRef<Awareness | null>(null);
 
   const pendingRequests = useRef<
     Map<
@@ -75,6 +78,14 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     roomDocument.current = newDoc;
 
     return newDoc;
+  }
+
+  function getAwareness(): Awareness {
+    if (!awarenessRef.current) {
+      awarenessRef.current = new Awareness(getRoomDocument());
+    }
+
+    return awarenessRef.current;
   }
 
   function handleUpdate(value: Uint8Array, origin: any) {
@@ -244,6 +255,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       socketRef.current = ws;
 
+      const awareness = getAwareness();
+
       async function handleOpen() {
         if (!user || !user.token) {
           ws.close();
@@ -260,6 +273,39 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         ws.close();
         console.log("Disconnected from websocket server.");
         setConnectionStatus("disconnected");
+      }
+
+      function handleAwarenessUpdate({
+        added,
+        updated,
+        removed,
+      }: {
+        added: number[];
+        updated: number[];
+        removed: number[];
+      }) {
+        console.log(typeof added);
+
+        console.log(typeof updated);
+
+        console.log(typeof removed);
+
+        const clients = [...added, ...updated, ...removed];
+
+        const update: Uint8Array = encodeAwarenessUpdate(awareness, clients);
+
+        const requestId = crypto.randomUUID();
+
+        const updateMessage: WebSocketRequest = {
+          type: "request",
+          event: "awareness_update",
+          requestId: requestId,
+          data: {
+            update: update,
+          },
+        };
+
+        ws.send(JSON.stringify({ updateMessage }));
       }
 
       function handleMessage(ev: MessageEvent<any>) {
@@ -307,6 +353,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           if (action === "you_joined_room") {
             if (ok) {
               const users = data.members;
+              const user = data.user;
 
               for (let i = 0; i < users.length; i++) {
                 const userId = users[i].userId;
@@ -315,7 +362,11 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 addMember(userId, displayName);
               }
 
-              console.log("you_joined_room");
+              awareness.setLocalStateField("user", {
+                userId: user.userId,
+                displayName: user.displayName,
+              });
+
               roomRef.current = data.roomId;
               const request = pendingRequests.current.get(requestId);
               request?.resolve();
@@ -391,12 +442,16 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       ws.addEventListener("message", handleMessage);
 
+      awareness.on("update", handleAwarenessUpdate);
+
       return () => {
         ws.removeEventListener("open", handleOpen);
 
         ws.removeEventListener("close", handleClose);
 
         ws.removeEventListener("message", handleMessage);
+
+        awareness.off("update", handleAwarenessUpdate);
 
         doc.off("update", handleUpdate);
 
@@ -414,6 +469,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       value={{
         files: files,
         getRoomDocument: getRoomDocument,
+        getAwareness: getAwareness,
         joinRoom: joinRoom,
         leaveRoom: leaveRoom,
         status: connectionStatus,
